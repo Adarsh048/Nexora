@@ -1,0 +1,91 @@
+import express from 'express';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
+import morgan from 'morgan';
+import rateLimit from 'express-rate-limit';
+
+// Route imports
+import authRoutes from './routes/authRoutes.js';
+import applicationRoutes from './routes/applicationRoutes.js';
+import timelineRoutes from './routes/timelineRoutes.js';
+import gmailRoutes from './routes/gmailRoutes.js';
+import inboxRoutes from './routes/inboxRoutes.js';
+import analyticsRoutes from './routes/analyticsRoutes.js';
+import calendarRoutes from './routes/calendarRoutes.js';
+import companyRoutes from './routes/companyRoutes.js';
+import achievementRoutes from './routes/achievementRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
+
+dotenv.config();
+
+const app = express();
+
+// Security & Middlewares
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+}));
+
+// Robust CORS supporting local development, Vercel preview URLs, and production domains
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow all in production/preview on Vercel or locally
+    callback(null, true);
+  },
+  credentials: true,
+}));
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(cookieParser());
+
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
+
+// Rate limiting for auth and API abuse prevention
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
+  message: { success: false, message: 'Too many requests, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api', apiLimiter);
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    product: 'Nexora Job Application Intelligence Platform',
+    version: '1.0.0',
+    environment: process.env.NODE_ENV || 'development',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// API Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/applications', applicationRoutes);
+app.use('/api/timeline', timelineRoutes);
+app.use('/api/gmail', gmailRoutes);
+app.use('/api/inbox', inboxRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/calendar', calendarRoutes);
+app.use('/api/companies', companyRoutes);
+app.use('/api/achievements', achievementRoutes);
+app.use('/api/notifications', notificationRoutes);
+
+// Centralized error handling middleware
+app.use((err, req, res, next) => {
+  console.error('[Server Error]:', err.stack);
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || 'Internal Server Error',
+    ...(process.env.NODE_ENV === 'development' ? { stack: err.stack } : {}),
+  });
+});
+
+export default app;
