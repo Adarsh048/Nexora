@@ -37,3 +37,4 @@ COPY --from=builder /app/client/dist ./client/dist
 EXPOSE 5000
 
 CMD ["node", "server/src/server.js"]
+
