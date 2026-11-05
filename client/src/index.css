@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --primary: #7652E8;
+    --primary-light: #9B7AFB;
+    --primary-dark: #5A35D6;
+    --navy-sidebar: #1E1A3C;
+    --bg-main: #F8F7FD;
+    --card-bg: #FFFFFF;
+    --text-primary: #17172F;
+    --text-secondary: #74748C;
+    --success: #35B982;
+    --warning: #F4B544;
+    --danger: #EF6674;
+    --info: #489BEE;
+    --border-light: #ECE8FB;
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: #F8F7FD;
+    color: #17172F;
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Nexora Premium Card Styling */
+.nexora-card {
+  background: #FFFFFF;
+  border: 1px solid #ECE8FB;
+  border-radius: 1.5rem;
+  /* 24px */
+  box-shadow: 0 10px 30px -5px rgba(118, 82, 232, 0.05), 0 2px 8px -2px rgba(0, 0, 0, 0.02);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nexora-card:hover {
+  border-color: #DDD6F7;
+  transform: translateY(-2px);
+  box-shadow: 0 14px 35px -6px rgba(118, 82, 232, 0.09), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
+}
+
+/* Glassmorphism Accents */
+.nexora-glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #DDD6F7;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #B9ADEE;
+}
