@@ -2,7 +2,32 @@ const API_BASE = import.meta.env.VITE_API_URL
   ? `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/api`
   : '/api';
 
+// Ultra-fast in-memory cache for instant UI transitions (0ms latency on navigation)
+const apiCache = new Map();
+const CACHE_TTL_MS = 15000; // 15 seconds
+
+export function invalidateCache(pattern = '') {
+  if (!pattern) {
+    apiCache.clear();
+  } else {
+    for (const key of apiCache.keys()) {
+      if (key.includes(pattern)) apiCache.delete(key);
+    }
+  }
+}
+
 async function request(endpoint, options = {}) {
+  const isGet = !options.method || options.method.toUpperCase() === 'GET';
+  const cacheKey = endpoint;
+
+  // Serve from cache if fresh (instant response on page navigation)
+  if (isGet && !options.noCache) {
+    const cached = apiCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+      return cached.data;
+    }
+  }
+
   const token = localStorage.getItem('nexora_token');
   const headers = {
     'Content-Type': 'application/json',
@@ -20,6 +45,13 @@ async function request(endpoint, options = {}) {
 
   if (!response.ok) {
     throw new Error(data.message || `Request failed with status ${response.status}`);
+  }
+
+  if (isGet) {
+    apiCache.set(cacheKey, { data, timestamp: Date.now() });
+  } else {
+    // Invalidate cache on mutations (add/update/delete)
+    invalidateCache();
   }
 
   return data;

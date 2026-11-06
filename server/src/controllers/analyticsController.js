@@ -9,11 +9,24 @@ export async function getDashboardData(req, res) {
   try {
     const userId = req.user._id;
 
-    // Fetch user for goals & streak
-    const user = await User.findById(userId);
-
-    // Fetch applications
-    const applications = await Application.find({ userId }).sort('-appliedDate');
+    // Parallel fetch for ultra-fast response
+    const [user, applications, recentActivity, upcomingEvents] = await Promise.all([
+      User.findById(userId).lean(),
+      Application.find({ userId }).sort('-appliedDate').lean(),
+      ApplicationEvent.find({ userId })
+        .sort('-eventDate')
+        .limit(6)
+        .populate('applicationId', 'companyName jobTitle companyLogo status')
+        .lean(),
+      CalendarEvent.find({
+        userId,
+        startTime: { $gte: new Date(Date.now() - 3600000 * 2) },
+      })
+        .sort('startTime')
+        .limit(4)
+        .populate('applicationId', 'companyName jobTitle companyLogo')
+        .lean(),
+    ]);
 
     // Counts
     const totalApps = applications.length;
@@ -34,7 +47,7 @@ export async function getDashboardData(req, res) {
       return d >= weekStart && d <= weekEnd;
     }).length;
 
-    const weeklyGoal = user.weeklyGoal || 5;
+    const weeklyGoal = user?.weeklyGoal || 5;
     const weeklyGoalPercent = Math.min(100, Math.round((weeklyApplicationsCount / weeklyGoal) * 100));
 
     // Pipeline preview columns (top items in each column)
@@ -56,21 +69,6 @@ export async function getDashboardData(req, res) {
         items: applications.filter(a => a.status === 'Interview').slice(0, 3),
       },
     };
-
-    // Recent activity feed (latest 5)
-    const recentActivity = await ApplicationEvent.find({ userId })
-      .sort('-eventDate')
-      .limit(6)
-      .populate('applicationId', 'companyName jobTitle companyLogo status');
-
-    // Upcoming calendar events (from now onwards)
-    const upcomingEvents = await CalendarEvent.find({
-      userId,
-      startTime: { $gte: new Date(Date.now() - 3600000 * 2) }, // from 2 hours ago onwards
-    })
-      .sort('startTime')
-      .limit(4)
-      .populate('applicationId', 'companyName jobTitle companyLogo');
 
     // Donut chart distribution (percentages)
     const distribution = [

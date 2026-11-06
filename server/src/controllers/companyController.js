@@ -15,10 +15,10 @@ export async function getCompanies(req, res) {
       ];
     }
 
-    const companies = await Company.find(query).sort('name');
-
-    // Aggregate applications for each company
-    const applications = await Application.find({ userId: req.user._id });
+    const [companies, applications] = await Promise.all([
+      Company.find(query).sort('name').lean(),
+      Application.find({ userId: req.user._id }).lean(),
+    ]);
 
     const companyData = companies.map(comp => {
       const compApps = applications.filter(a => 
@@ -27,7 +27,7 @@ export async function getCompanies(req, res) {
       );
 
       return {
-        ...comp.toObject(),
+        ...comp,
         applicationsCount: compApps.length,
         applications: compApps.map(a => ({
           _id: a._id,

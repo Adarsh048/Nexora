@@ -17,7 +17,8 @@ export async function getCalendarEvents(req, res) {
 
     const events = await CalendarEvent.find(query)
       .sort('startTime')
-      .populate('applicationId', 'companyName jobTitle companyLogo status');
+      .populate('applicationId', 'companyName jobTitle companyLogo status')
+      .lean();
 
     res.status(200).json({
       success: true,

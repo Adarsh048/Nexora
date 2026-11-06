@@ -2,9 +2,11 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import helmet from 'helmet';
+import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
+import mongoose from 'mongoose';
 
 import { connectDB } from './config/db.js';
 
@@ -41,6 +43,7 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
+app.use(compression());
 
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
@@ -67,9 +70,9 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Database connection readiness middleware for all API routes
+// Database connection readiness check (instant 0ms pass-through when connection is ready)
 app.use('/api', async (req, res, next) => {
-  if (req.path === '/health') return next();
+  if (req.path === '/health' || mongoose.connection.readyState === 1) return next();
   try {
     await connectDB();
     next();

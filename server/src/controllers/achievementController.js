@@ -2,7 +2,9 @@ import Achievement from '../models/Achievement.js';
 
 export async function getAchievements(req, res) {
   try {
-    const achievements = await Achievement.find({ userId: req.user._id }).sort('unlocked -unlockedAt');
+    const achievements = await Achievement.find({ userId: req.user._id })
+      .sort('unlocked -unlockedAt')
+      .lean();
     const unlockedCount = achievements.filter(a => a.unlocked).length;
 
     res.status(200).json({

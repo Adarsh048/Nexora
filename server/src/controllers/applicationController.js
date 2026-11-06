@@ -29,7 +29,7 @@ export async function getApplications(req, res) {
     const skip = (Number(page) - 1) * Number(limit);
 
     const [applications, total] = await Promise.all([
-      Application.find(query).sort(sort).skip(skip).limit(Number(limit)),
+      Application.find(query).sort(sort).skip(skip).limit(Number(limit)).lean(),
       Application.countDocuments(query),
     ]);
 
@@ -50,7 +50,9 @@ export async function getApplications(req, res) {
 
 export async function getKanbanBoard(req, res) {
   try {
-    const applications = await Application.find({ userId: req.user._id }).sort('kanbanOrder -appliedDate');
+    const applications = await Application.find({ userId: req.user._id })
+      .sort('kanbanOrder -appliedDate')
+      .lean();
 
     const columns = {
       Saved: [],

@@ -20,7 +20,9 @@ import { format } from 'date-fns';
 export const ApplicationsPage = () => {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isFetching, setIsFetching] = useState(false);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [sourceFilter, setSourceFilter] = useState('All');
   const [viewMode, setViewMode] = useState('table');
@@ -31,11 +33,25 @@ export const ApplicationsPage = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedApp, setSelectedApp] = useState(null);
 
+  // Debounce search input to eliminate jank
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const fetchApps = async () => {
-    setLoading(true);
+    if (applications.length === 0) {
+      setLoading(true);
+    } else {
+      setIsFetching(true);
+    }
+
     try {
       const res = await applicationApi.getAll({
-        search,
+        search: debouncedSearch,
         status: statusFilter,
         source: sourceFilter,
         page: page.toString(),
@@ -44,19 +60,20 @@ export const ApplicationsPage = () => {
 
       if (res.success && res.data) {
         setApplications(res.data);
-        setTotalPages(res.pagination.pages || 1);
-        setTotalCount(res.pagination.total || 0);
+        setTotalPages(res.pagination?.pages || 1);
+        setTotalCount(res.pagination?.total || 0);
       }
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
+      setIsFetching(false);
     }
   };
 
   useEffect(() => {
     fetchApps();
-  }, [search, statusFilter, sourceFilter, page]);
+  }, [debouncedSearch, statusFilter, sourceFilter, page]);
 
   const handleDelete = async (id, e) => {
     e.stopPropagation();
@@ -195,7 +212,7 @@ export const ApplicationsPage = () => {
       </div>
 
       {/* Main Content: Table or Grid */}
-      {loading ? (
+      {loading && applications.length === 0 ? (
         <div className="bg-white rounded-3xl p-8 border border-violet-100/60 space-y-4 animate-pulse">
           <div className="h-8 bg-slate-100 rounded-xl" />
           <div className="h-12 bg-slate-100 rounded-xl" />

@@ -10,7 +10,8 @@ export async function getApplicationTimeline(req, res) {
       userId: req.user._id,
     })
       .sort('-eventDate')
-      .populate('emailReferenceId', 'subject senderEmail receivedAt detectedCategory snippet');
+      .populate('emailReferenceId', 'subject senderEmail receivedAt detectedCategory snippet')
+      .lean();
 
     res.status(200).json({
       success: true,
@@ -83,7 +84,8 @@ export async function getActivityFeed(req, res) {
         .sort('-eventDate')
         .skip(skip)
         .limit(Number(limit))
-        .populate('applicationId', 'companyName jobTitle companyLogo status'),
+        .populate('applicationId', 'companyName jobTitle companyLogo status')
+        .lean(),
       ApplicationEvent.countDocuments(query),
     ]);
 

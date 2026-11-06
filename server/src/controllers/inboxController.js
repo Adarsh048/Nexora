@@ -39,7 +39,8 @@ export async function getInboxEmails(req, res) {
         .sort('-receivedAt')
         .skip(skip)
         .limit(Number(limit))
-        .populate('matchedApplicationId', 'companyName jobTitle status companyLogo'),
+        .populate('matchedApplicationId', 'companyName jobTitle status companyLogo')
+        .lean(),
       ProcessedEmail.countDocuments(query),
       ProcessedEmail.countDocuments({ userId: req.user._id, reviewStatus: 'pending' }),
     ]);
