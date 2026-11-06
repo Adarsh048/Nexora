@@ -121,18 +121,16 @@ export const ApplicationsPage = () => {
           <div className="flex items-center bg-white border border-violet-100 rounded-2xl p-1 shadow-xs">
             <button
               onClick={() => setViewMode('table')}
-              className={`p-1.5 rounded-xl transition-colors cursor-pointer ${
-                viewMode === 'table' ? 'bg-[#7652E8] text-white shadow-xs' : 'text-slate-400 hover:text-slate-600'
-              }`}
+              className={`p-1.5 rounded-xl transition-colors cursor-pointer ${viewMode === 'table' ? 'bg-[#7652E8] text-white shadow-xs' : 'text-slate-400 hover:text-slate-600'
+                }`}
               title="Table view"
             >
               <List className="w-4 h-4" />
             </button>
             <button
               onClick={() => setViewMode('grid')}
-              className={`p-1.5 rounded-xl transition-colors cursor-pointer ${
-                viewMode === 'grid' ? 'bg-[#7652E8] text-white shadow-xs' : 'text-slate-400 hover:text-slate-600'
-              }`}
+              className={`p-1.5 rounded-xl transition-colors cursor-pointer ${viewMode === 'grid' ? 'bg-[#7652E8] text-white shadow-xs' : 'text-slate-400 hover:text-slate-600'
+                }`}
               title="Grid view"
             >
               <Grid className="w-4 h-4" />
