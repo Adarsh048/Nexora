@@ -36,7 +36,7 @@ export const AuthPage = () => {
   const { login, register } = useAuth();
   const navigate = useNavigate();
 
-  // Dynamic Password Strength Calculation (0 to 3)
+  // Dynamic Password Security Meter (0 to 3)
   const getPasswordStrength = (pass) => {
     if (!pass) return 0;
     let score = 0;
@@ -77,11 +77,11 @@ export const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0718] flex flex-col lg:flex-row relative overflow-x-hidden select-none font-sans">
+    <div className="min-h-screen bg-[#090616] flex flex-col lg:flex-row relative overflow-x-hidden select-none font-sans text-slate-100">
       {/* Dynamic Ambient Background Glow Elements */}
-      <div className="absolute top-[-8%] left-[-10%] w-[380px] sm:w-[580px] h-[380px] sm:h-[580px] bg-[#7652E8]/20 rounded-full blur-[110px] sm:blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] sm:right-[15%] w-[420px] sm:w-[650px] h-[420px] sm:h-[650px] bg-[#9B7AFB]/18 rounded-full blur-[120px] sm:blur-[150px] pointer-events-none" />
-      <div className="absolute top-[35%] right-[-5%] w-[320px] sm:w-[480px] h-[320px] sm:h-[480px] bg-cyan-500/10 rounded-full blur-[90px] sm:blur-[130px] pointer-events-none" />
+      <div className="absolute top-[-10%] left-[-10%] w-[420px] sm:w-[620px] h-[420px] sm:h-[620px] bg-[#7652E8]/22 rounded-full blur-[120px] sm:blur-[150px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] sm:right-[15%] w-[450px] sm:w-[700px] h-[450px] sm:h-[700px] bg-[#9B7AFB]/20 rounded-full blur-[130px] sm:blur-[160px] pointer-events-none" />
+      <div className="absolute top-[35%] right-[-5%] w-[350px] sm:w-[500px] h-[350px] sm:h-[500px] bg-cyan-500/12 rounded-full blur-[100px] sm:blur-[140px] pointer-events-none" />
 
       {/* Subtle Precision Dot Matrix Grid */}
       <div
@@ -92,7 +92,7 @@ export const AuthPage = () => {
         }}
       />
 
-      {/* LEFT COLUMN: DESKTOP SHOWCASE HERO (>= lg) */}
+      {/* LEFT COLUMN: DESKTOP SHOWCASE HERO (>= lg screens) */}
       <div className="hidden lg:flex lg:w-7/12 flex-col justify-between p-12 xl:p-16 relative z-10 border-r border-white/[0.08]">
         {/* Brand Header */}
         <div className="flex items-center space-x-3.5">
@@ -196,7 +196,7 @@ export const AuthPage = () => {
         </div>
       </div>
 
-      {/* RIGHT COLUMN: LUXURY MOBILE & DESKTOP AUTH FORM */}
+      {/* RIGHT COLUMN: FULLY TRANSPARENT GLASSMORPHIC AUTH EXPERIENCE */}
       <div className="flex-1 flex flex-col justify-center items-center px-4 py-8 sm:p-8 lg:p-12 relative z-10 min-h-screen w-full">
         <div className="w-full max-w-[430px] space-y-4 sm:space-y-5">
 
@@ -215,7 +215,7 @@ export const AuthPage = () => {
               </div>
               <span className="absolute -top-1 -right-1 flex h-4 w-4">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-4 w-4 bg-emerald-500 border-2 border-[#0A0718]" />
+                <span className="relative inline-flex rounded-full h-4 w-4 bg-emerald-500 border-2 border-[#090616]" />
               </span>
             </div>
 
@@ -242,19 +242,19 @@ export const AuthPage = () => {
             </div>
           </div>
 
-          {/* LUXURY FORM CARD (Gradient border glow + frosted background) */}
-          <div className="p-[1.5px] rounded-[30px] sm:rounded-[32px] bg-gradient-to-b from-white/30 via-violet-500/20 to-white/10 shadow-[0_25px_70px_rgba(118,82,232,0.22)]">
-            <div className="bg-white rounded-[28px] sm:rounded-[30px] p-6 sm:p-8 space-y-5 transition-all">
+          {/* LUXURY TRANSPARENT FROSTED GLASS CARD */}
+          <div className="p-[1.5px] rounded-[32px] sm:rounded-[36px] bg-gradient-to-b from-white/25 via-violet-500/20 to-white/10 shadow-[0_30px_90px_rgba(0,0,0,0.65)] backdrop-blur-2xl">
+            <div className="bg-[#120D2C]/80 sm:bg-[#120D2C]/85 backdrop-blur-3xl rounded-[30px] sm:rounded-[34px] p-6 sm:p-8 space-y-5 border border-white/[0.08] transition-all">
 
               {/* Card Header & Smooth Segmented Control */}
               <div className="space-y-3.5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                    <h2 className="text-lg sm:text-xl font-black text-white tracking-tight flex items-center gap-2">
                       <span>{isRegister ? 'Create Your Account' : 'Welcome Back'}</span>
-                      <Sparkles className="w-4 h-4 text-[#7652E8]" />
+                      <Sparkles className="w-4 h-4 text-[#A78BFA]" />
                     </h2>
-                    <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5 font-medium">
+                    <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5 font-medium">
                       {isRegister
                         ? 'Launch your intelligent job search workspace'
                         : 'Sign in to access your recruitment pipeline'}
@@ -263,7 +263,7 @@ export const AuthPage = () => {
                 </div>
 
                 {/* Tactile Mode Switcher Tabs */}
-                <div className="flex bg-[#F3F0FC] p-1 rounded-2xl border border-violet-100">
+                <div className="flex bg-white/[0.05] p-1 rounded-2xl border border-white/[0.08]">
                   <button
                     type="button"
                     onClick={() => {
@@ -272,8 +272,8 @@ export const AuthPage = () => {
                     }}
                     className={`flex-1 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       !isRegister
-                        ? 'bg-white text-slate-900 shadow-xs'
-                        : 'text-slate-400 hover:text-slate-700'
+                        ? 'bg-gradient-to-r from-[#7652E8] to-[#916DF8] text-white shadow-md shadow-[#7652E8]/35'
+                        : 'text-slate-400 hover:text-white'
                     }`}
                   >
                     Sign In
@@ -286,8 +286,8 @@ export const AuthPage = () => {
                     }}
                     className={`flex-1 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       isRegister
-                        ? 'bg-white text-slate-900 shadow-xs'
-                        : 'text-slate-400 hover:text-slate-700'
+                        ? 'bg-gradient-to-r from-[#7652E8] to-[#916DF8] text-white shadow-md shadow-[#7652E8]/35'
+                        : 'text-slate-400 hover:text-white'
                     }`}
                   >
                     Create Account
@@ -297,33 +297,33 @@ export const AuthPage = () => {
 
               {/* Error Banner */}
               {error && (
-                <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200/80 text-xs text-rose-600 font-semibold leading-relaxed flex items-start space-x-2 animate-in fade-in">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5 shrink-0" />
+                <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-300 font-semibold leading-relaxed flex items-start space-x-2 animate-in fade-in">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-400 mt-1.5 shrink-0" />
                   <span>{error}</span>
                 </div>
               )}
 
-              {/* ATTRACTIVE FORM FILL AREA */}
+              {/* ATTRACTIVE TRANSPARENT FORM FILL AREA */}
               <form onSubmit={handleSubmit} className="space-y-3.5">
                 {isRegister && (
                   <>
                     {/* Full Name Input */}
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
-                        <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                        <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
                           Full Name
                         </label>
                       </div>
                       <div
                         className={`relative rounded-2xl border transition-all duration-200 ${
                           focusedField === 'name'
-                            ? 'border-[#7652E8] bg-white ring-4 ring-violet-500/15 shadow-sm'
-                            : 'border-violet-100 bg-[#FAF9FE] hover:border-violet-200'
+                            ? 'border-[#A78BFA] bg-white/[0.09] ring-4 ring-[#7652E8]/25 shadow-[0_0_25px_rgba(118,82,232,0.35)]'
+                            : 'border-white/[0.12] bg-white/[0.04] hover:border-white/[0.22] hover:bg-white/[0.06]'
                         }`}
                       >
                         <UserIcon
                           className={`w-4 h-4 absolute left-3.5 top-3.5 transition-colors ${
-                            focusedField === 'name' ? 'text-[#7652E8]' : 'text-slate-400'
+                            focusedField === 'name' ? 'text-[#A78BFA]' : 'text-slate-400'
                           }`}
                         />
                         <input
@@ -334,7 +334,7 @@ export const AuthPage = () => {
                           onBlur={() => setFocusedField(null)}
                           onChange={(e) => setName(e.target.value)}
                           placeholder="e.g. Adarsh Sharma"
-                          className="w-full pl-10 pr-3.5 py-3 rounded-2xl text-xs sm:text-sm text-slate-900 font-semibold placeholder:text-slate-400 placeholder:font-normal focus:outline-none bg-transparent"
+                          className="w-full pl-10 pr-3.5 py-3 rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-500 focus:outline-none bg-transparent"
                         />
                       </div>
                     </div>
@@ -342,20 +342,20 @@ export const AuthPage = () => {
                     {/* Target Job Role Input */}
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
-                        <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                        <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
                           Target Job Role
                         </label>
                       </div>
                       <div
                         className={`relative rounded-2xl border transition-all duration-200 ${
                           focusedField === 'role'
-                            ? 'border-[#7652E8] bg-white ring-4 ring-violet-500/15 shadow-sm'
-                            : 'border-violet-100 bg-[#FAF9FE] hover:border-violet-200'
+                            ? 'border-[#A78BFA] bg-white/[0.09] ring-4 ring-[#7652E8]/25 shadow-[0_0_25px_rgba(118,82,232,0.35)]'
+                            : 'border-white/[0.12] bg-white/[0.04] hover:border-white/[0.22] hover:bg-white/[0.06]'
                         }`}
                       >
                         <Briefcase
                           className={`w-4 h-4 absolute left-3.5 top-3.5 transition-colors ${
-                            focusedField === 'role' ? 'text-[#7652E8]' : 'text-slate-400'
+                            focusedField === 'role' ? 'text-[#A78BFA]' : 'text-slate-400'
                           }`}
                         />
                         <input
@@ -365,7 +365,7 @@ export const AuthPage = () => {
                           onBlur={() => setFocusedField(null)}
                           onChange={(e) => setTargetRole(e.target.value)}
                           placeholder="e.g. Full Stack Developer, Product Designer"
-                          className="w-full pl-10 pr-3.5 py-3 rounded-2xl text-xs sm:text-sm text-slate-900 font-semibold placeholder:text-slate-400 placeholder:font-normal focus:outline-none bg-transparent"
+                          className="w-full pl-10 pr-3.5 py-3 rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-500 focus:outline-none bg-transparent"
                         />
                       </div>
                     </div>
@@ -375,7 +375,7 @@ export const AuthPage = () => {
                 {/* Email Address Input */}
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                    <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
                       Email Address
                     </label>
                     <span className="text-[10px] text-slate-400 font-medium">Work or Personal</span>
@@ -383,13 +383,13 @@ export const AuthPage = () => {
                   <div
                     className={`relative rounded-2xl border transition-all duration-200 ${
                       focusedField === 'email'
-                        ? 'border-[#7652E8] bg-white ring-4 ring-violet-500/15 shadow-sm'
-                        : 'border-violet-100 bg-[#FAF9FE] hover:border-violet-200'
+                        ? 'border-[#A78BFA] bg-white/[0.09] ring-4 ring-[#7652E8]/25 shadow-[0_0_25px_rgba(118,82,232,0.35)]'
+                        : 'border-white/[0.12] bg-white/[0.04] hover:border-white/[0.22] hover:bg-white/[0.06]'
                     }`}
                   >
                     <Mail
                       className={`w-4 h-4 absolute left-3.5 top-3.5 transition-colors ${
-                        focusedField === 'email' ? 'text-[#7652E8]' : 'text-slate-400'
+                        focusedField === 'email' ? 'text-[#A78BFA]' : 'text-slate-400'
                       }`}
                     />
                     <input
@@ -400,7 +400,7 @@ export const AuthPage = () => {
                       onBlur={() => setFocusedField(null)}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@domain.com"
-                      className="w-full pl-10 pr-3.5 py-3 rounded-2xl text-xs sm:text-sm text-slate-900 font-semibold placeholder:text-slate-400 placeholder:font-normal focus:outline-none bg-transparent"
+                      className="w-full pl-10 pr-3.5 py-3 rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-500 focus:outline-none bg-transparent"
                     />
                   </div>
                 </div>
@@ -408,13 +408,13 @@ export const AuthPage = () => {
                 {/* Password Input */}
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                    <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
                       Password
                     </label>
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="text-[11px] font-bold text-[#7652E8] hover:text-[#5E3BC4] cursor-pointer flex items-center space-x-1"
+                      className="text-[11px] font-bold text-[#A78BFA] hover:text-white cursor-pointer flex items-center space-x-1"
                     >
                       <span>{showPassword ? 'Hide' : 'Show'}</span>
                     </button>
@@ -422,13 +422,13 @@ export const AuthPage = () => {
                   <div
                     className={`relative rounded-2xl border transition-all duration-200 ${
                       focusedField === 'password'
-                        ? 'border-[#7652E8] bg-white ring-4 ring-violet-500/15 shadow-sm'
-                        : 'border-violet-100 bg-[#FAF9FE] hover:border-violet-200'
+                        ? 'border-[#A78BFA] bg-white/[0.09] ring-4 ring-[#7652E8]/25 shadow-[0_0_25px_rgba(118,82,232,0.35)]'
+                        : 'border-white/[0.12] bg-white/[0.04] hover:border-white/[0.22] hover:bg-white/[0.06]'
                     }`}
                   >
                     <Lock
                       className={`w-4 h-4 absolute left-3.5 top-3.5 transition-colors ${
-                        focusedField === 'password' ? 'text-[#7652E8]' : 'text-slate-400'
+                        focusedField === 'password' ? 'text-[#A78BFA]' : 'text-slate-400'
                       }`}
                     />
                     <input
@@ -439,12 +439,12 @@ export const AuthPage = () => {
                       onBlur={() => setFocusedField(null)}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••••••"
-                      className="w-full pl-10 pr-11 py-3 rounded-2xl text-xs sm:text-sm text-slate-900 font-semibold placeholder:text-slate-400 placeholder:font-normal focus:outline-none bg-transparent"
+                      className="w-full pl-10 pr-11 py-3 rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-500 focus:outline-none bg-transparent"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-2.5 p-1.5 text-slate-400 hover:text-slate-700 cursor-pointer rounded-lg hover:bg-slate-100 transition-colors"
+                      className="absolute right-3 top-2.5 p-1.5 text-slate-400 hover:text-white cursor-pointer rounded-lg hover:bg-white/[0.08] transition-colors"
                       tabIndex={-1}
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
                     >
@@ -458,23 +458,23 @@ export const AuthPage = () => {
                       <div className="flex items-center space-x-1.5">
                         <div
                           className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
-                            passwordStrength >= 1 ? 'bg-amber-400' : 'bg-slate-200'
+                            passwordStrength >= 1 ? 'bg-amber-400' : 'bg-white/[0.1]'
                           }`}
                         />
                         <div
                           className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
-                            passwordStrength >= 2 ? 'bg-violet-500' : 'bg-slate-200'
+                            passwordStrength >= 2 ? 'bg-[#916DF8]' : 'bg-white/[0.1]'
                           }`}
                         />
                         <div
                           className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
-                            passwordStrength >= 3 ? 'bg-emerald-500' : 'bg-slate-200'
+                            passwordStrength >= 3 ? 'bg-emerald-400' : 'bg-white/[0.1]'
                           }`}
                         />
                       </div>
                       <div className="flex justify-between items-center text-[10px] text-slate-400 px-0.5">
                         <span>Security level:</span>
-                        <span className="font-bold text-slate-600">
+                        <span className="font-bold text-slate-300">
                           {passwordStrength === 1 && 'Basic (Add capital letter or number)'}
                           {passwordStrength === 2 && 'Good (Add special character)'}
                           {passwordStrength >= 3 && 'Strong & Secure'}
@@ -488,7 +488,7 @@ export const AuthPage = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-[#7652E8] via-[#8B5CF6] to-[#9E7AF9] hover:opacity-95 active:scale-[0.98] text-white text-xs sm:text-sm font-black tracking-wide shadow-xl shadow-[#7652E8]/35 transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-60 mt-2"
+                  className="w-full py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-[#7652E8] via-[#8B5CF6] to-[#A855F7] hover:from-[#6D46E6] hover:to-[#9947E9] active:scale-[0.98] text-white text-xs sm:text-sm font-black tracking-wide shadow-xl shadow-[#7652E8]/40 transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-60 mt-2"
                 >
                   {loading ? (
                     <div className="flex items-center space-x-2">
@@ -510,16 +510,16 @@ export const AuthPage = () => {
                   <button
                     type="button"
                     onClick={handleQuickFillDemo}
-                    className="w-full py-2.5 px-3.5 rounded-2xl bg-gradient-to-r from-violet-50 via-purple-50/60 to-violet-50 hover:bg-violet-100 border border-violet-200/80 text-[#7652E8] text-xs font-bold transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-2xs active:scale-[0.99]"
+                    className="w-full py-2.5 px-3.5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-violet-400/30 text-violet-300 hover:text-white text-xs font-bold transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-2xs active:scale-[0.99]"
                   >
                     {demoFilled ? (
                       <>
-                        <Check className="w-4 h-4 text-emerald-600 stroke-[2.5]" />
-                        <span className="text-emerald-700 font-bold">Demo Account Filled! Ready to sign in</span>
+                        <Check className="w-4 h-4 text-emerald-400 stroke-[2.5]" />
+                        <span className="text-emerald-300 font-bold">Demo Account Filled! Ready to sign in</span>
                       </>
                     ) : (
                       <>
-                        <Zap className="w-3.5 h-3.5 text-[#7652E8] fill-[#7652E8]" />
+                        <Zap className="w-3.5 h-3.5 text-[#A78BFA] fill-[#A78BFA]" />
                         <span>1-Tap Demo Account (Quick Fill)</span>
                       </>
                     )}
@@ -528,8 +528,8 @@ export const AuthPage = () => {
               )}
 
               {/* Security badge footer */}
-              <div className="pt-2 border-t border-violet-50 flex items-center justify-center space-x-1.5 text-[11px] text-slate-400">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+              <div className="pt-2 border-t border-white/[0.08] flex items-center justify-center space-x-1.5 text-[11px] text-slate-400">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                 <span>Encrypted Session • Private Candidate Record</span>
               </div>
             </div>
