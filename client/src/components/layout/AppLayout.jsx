@@ -5,7 +5,7 @@ import { Sidebar } from './Sidebar.jsx';
 import { TopBar } from './TopBar.jsx';
 import { CommandPalette } from './CommandPalette.jsx';
 import { ApplicationModal } from '../applications/ApplicationModal.jsx';
-import { notificationApi, gmailApi, inboxApi } from '../../services/api.js';
+import { notificationApi, gmailApi, inboxApi, prefetchWorkspaceData } from '../../services/api.js';
 
 export const AppLayout = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -41,6 +41,7 @@ export const AppLayout = () => {
 
   useEffect(() => {
     fetchHeaderData();
+    prefetchWorkspaceData();
     const interval = setInterval(fetchHeaderData, 60000);
     return () => clearInterval(interval);
   }, []);

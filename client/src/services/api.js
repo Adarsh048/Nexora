@@ -2,9 +2,11 @@ const API_BASE = import.meta.env.VITE_API_URL
   ? `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/api`
   : '/api';
 
-// Ultra-fast in-memory cache for instant UI transitions (0ms latency on navigation)
+// Ultra-fast in-memory cache & in-flight request deduplicator (0ms instant page loads)
 const apiCache = new Map();
-const CACHE_TTL_MS = 15000; // 15 seconds
+const inFlightRequests = new Map();
+const CACHE_FRESH_MS = 8000;   // 8s: instant return without background revalidation
+const CACHE_STALE_MS = 60000;  // 60s: return immediately and silently revalidate in background
 
 export function invalidateCache(pattern = '') {
   if (!pattern) {
@@ -16,19 +18,7 @@ export function invalidateCache(pattern = '') {
   }
 }
 
-async function request(endpoint, options = {}) {
-  const isGet = !options.method || options.method.toUpperCase() === 'GET';
-  const cacheKey = endpoint;
-
-  // Serve from cache if fresh (instant response on page navigation)
-  if (isGet && !options.noCache) {
-    const cached = apiCache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
-      return cached.data;
-    }
-  }
-
-  const token = localStorage.getItem('nexora_token');
+async function executeNetworkFetch(endpoint, options = {}, token) {
   const headers = {
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -47,14 +37,88 @@ async function request(endpoint, options = {}) {
     throw new Error(data.message || `Request failed with status ${response.status}`);
   }
 
-  if (isGet) {
-    apiCache.set(cacheKey, { data, timestamp: Date.now() });
+  return data;
+}
+
+async function request(endpoint, options = {}) {
+  const isGet = !options.method || options.method.toUpperCase() === 'GET';
+  const cacheKey = endpoint;
+  const token = localStorage.getItem('nexora_token');
+
+  // GET requests: Serve from cache with intelligent SWR
+  if (isGet && !options.noCache) {
+    const cached = apiCache.get(cacheKey);
+    const now = Date.now();
+
+    if (cached) {
+      const age = now - cached.timestamp;
+      // Fresh: instant 0ms return
+      if (age < CACHE_FRESH_MS) {
+        return cached.data;
+      }
+      // Stale but within 60s: return cached immediately, trigger background silent revalidation
+      if (age < CACHE_STALE_MS) {
+        if (!inFlightRequests.has(cacheKey)) {
+          const revalidatePromise = executeNetworkFetch(endpoint, options, token)
+            .then((freshData) => {
+              apiCache.set(cacheKey, { data: freshData, timestamp: Date.now() });
+              window.dispatchEvent(new CustomEvent(`nexora-cache-synced:${cacheKey}`, { detail: freshData }));
+            })
+            .catch(() => {})
+            .finally(() => inFlightRequests.delete(cacheKey));
+          inFlightRequests.set(cacheKey, revalidatePromise);
+        }
+        return cached.data;
+      }
+    }
+
+    // Deduplicate in-flight identical GET requests
+    if (inFlightRequests.has(cacheKey)) {
+      return inFlightRequests.get(cacheKey);
+    }
+
+    const fetchPromise = executeNetworkFetch(endpoint, options, token)
+      .then((data) => {
+        apiCache.set(cacheKey, { data, timestamp: Date.now() });
+        return data;
+      })
+      .finally(() => {
+        inFlightRequests.delete(cacheKey);
+      });
+
+    inFlightRequests.set(cacheKey, fetchPromise);
+    return fetchPromise;
+  }
+
+  // Mutations (POST, PUT, PATCH, DELETE)
+  const result = await executeNetworkFetch(endpoint, options, token);
+
+  // Targeted Cache Invalidation for sub-second UI synchronization
+  if (endpoint.includes('/applications')) {
+    invalidateCache('/applications');
+    invalidateCache('/analytics');
+    invalidateCache('/timeline');
+  } else if (endpoint.includes('/notifications')) {
+    invalidateCache('/notifications');
+  } else if (endpoint.includes('/companies')) {
+    invalidateCache('/companies');
+  } else if (endpoint.includes('/calendar')) {
+    invalidateCache('/calendar');
   } else {
-    // Invalidate cache on mutations (add/update/delete)
     invalidateCache();
   }
 
-  return data;
+  return result;
+}
+
+// Background workspace prefetcher for instant 0ms tab switching
+export function prefetchWorkspaceData() {
+  const token = localStorage.getItem('nexora_token');
+  if (!token) return;
+  request('/applications?limit=25').catch(() => {});
+  request('/applications/kanban').catch(() => {});
+  request('/analytics/dashboard').catch(() => {});
+  request('/notifications').catch(() => {});
 }
 
 // Auth API

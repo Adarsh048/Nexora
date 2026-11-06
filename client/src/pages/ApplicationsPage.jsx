@@ -78,11 +78,19 @@ export const ApplicationsPage = () => {
   const handleDelete = async (id, e) => {
     e.stopPropagation();
     if (!window.confirm('Are you sure you want to delete this application and its event history?')) return;
+    
+    // Instant 0ms optimistic UI removal
+    const previousApps = [...applications];
+    const previousTotal = totalCount;
+    setApplications((prev) => prev.filter((app) => app._id !== id));
+    setTotalCount((prev) => Math.max(0, prev - 1));
+
     try {
       await applicationApi.delete(id);
-      fetchApps();
     } catch (err) {
-      console.error(err);
+      setApplications(previousApps);
+      setTotalCount(previousTotal);
+      console.error('Failed to delete application:', err);
     }
   };
 
