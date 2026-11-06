@@ -10,15 +10,16 @@ import {
   Eye,
   EyeOff,
   Sparkles,
+  CheckCircle2,
   Zap,
-  Target,
-  BarChart3,
-  Calendar,
+  TrendingUp,
+  Layers,
+  Award,
   Briefcase,
-  Bell,
   Check,
+  Shield,
+  KeyRound,
 } from 'lucide-react';
-import { gmailApi } from '../services/api';
 
 export const AuthPage = () => {
   const [isRegister, setIsRegister] = useState(false);
@@ -27,12 +28,25 @@ export const AuthPage = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [targetRole, setTargetRole] = useState('Software Engineer');
+  const [focusedField, setFocusedField] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [demoNotice, setDemoNotice] = useState(false);
+  const [demoFilled, setDemoFilled] = useState(false);
 
   const { login, register } = useAuth();
   const navigate = useNavigate();
+
+  // Dynamic Password Security Meter (0 to 3)
+  const getPasswordStrength = (pass) => {
+    if (!pass) return 0;
+    let score = 0;
+    if (pass.length >= 6) score++;
+    if (pass.length >= 8 && /[A-Z]/.test(pass)) score++;
+    if (/[0-9]/.test(pass) || /[^A-Za-z0-9]/.test(pass)) score++;
+    return score;
+  };
+
+  const passwordStrength = getPasswordStrength(password);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -53,388 +67,492 @@ export const AuthPage = () => {
     }
   };
 
-  const handleQuickDemoFill = () => {
+  const handleQuickFillDemo = () => {
     setIsRegister(false);
-    setEmail('test2@gmail.com');
+    setEmail('test@gmail.com');
     setPassword('Password123!');
     setError(null);
-    setDemoNotice(true);
-    setTimeout(() => setDemoNotice(false), 2500);
-  };
-
-  const handleGoogleAuth = async () => {
-    try {
-      const res = await gmailApi.getAuthUrl();
-      if (res.success && res.url) {
-        window.location.href = res.url;
-      } else {
-        handleQuickDemoFill();
-      }
-    } catch {
-      handleQuickDemoFill();
-    }
+    setDemoFilled(true);
+    setTimeout(() => setDemoFilled(false), 2500);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#FAF8FF] via-[#3E1A8B] to-[#2B0E68] flex flex-col items-center justify-start relative overflow-x-hidden font-sans select-none pb-12">
-      {/* Background radial ambient lights */}
-      <div className="absolute top-0 inset-x-0 h-96 bg-gradient-to-b from-white via-[#F3EDFE] to-transparent pointer-events-none" />
-      <div className="absolute top-48 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[#6832CD]/30 rounded-full blur-[140px] pointer-events-none" />
+    <div className="min-h-screen bg-[#090616] flex flex-col lg:flex-row relative overflow-x-hidden select-none font-sans text-slate-100">
+      {/* Dynamic Ambient Background Glow Elements */}
+      <div className="absolute top-[-10%] left-[-10%] w-[420px] sm:w-[620px] h-[420px] sm:h-[620px] bg-[#7652E8]/22 rounded-full blur-[120px] sm:blur-[150px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] sm:right-[15%] w-[450px] sm:w-[700px] h-[450px] sm:h-[700px] bg-[#9B7AFB]/20 rounded-full blur-[130px] sm:blur-[160px] pointer-events-none" />
+      <div className="absolute top-[35%] right-[-5%] w-[350px] sm:w-[500px] h-[350px] sm:h-[500px] bg-cyan-500/12 rounded-full blur-[100px] sm:blur-[140px] pointer-events-none" />
 
-      {/* TOP BRAND HEADER */}
-      <header className="relative z-10 w-full pt-8 pb-4 px-6 flex flex-col items-center text-center">
-        {/* Layered Diamond Logo + Brand Name */}
-        <div className="flex items-center space-x-2.5">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#7652E8] to-[#9B7AFB] p-0.5 shadow-md shadow-[#7652E8]/30 flex items-center justify-center">
-            <div className="w-full h-full rounded-[10px] bg-[#1B113B] flex items-center justify-center">
-              <svg className="w-5 h-5 text-[#B396FF]" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2L2 7L12 12L22 7L12 2Z" />
-                <path d="M2 12L12 17L22 12" stroke="#B396FF" strokeWidth="2" fill="none" />
-                <path d="M2 17L12 22L22 17" stroke="#B396FF" strokeWidth="2" fill="none" />
+      {/* Subtle Precision Dot Matrix Grid */}
+      <div
+        className="absolute inset-0 opacity-[0.035] pointer-events-none"
+        style={{
+          backgroundImage: `radial-gradient(circle at 1px 1px, white 1px, transparent 0)`,
+          backgroundSize: '24px 24px',
+        }}
+      />
+
+      {/* LEFT COLUMN: DESKTOP SHOWCASE HERO (>= lg screens) */}
+      <div className="hidden lg:flex lg:w-7/12 flex-col justify-between p-12 xl:p-16 relative z-10 border-r border-white/[0.08]">
+        {/* Brand Header */}
+        <div className="flex items-center space-x-3.5">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-[#7652E8] via-[#916DF8] to-[#B396FF] p-0.5 shadow-lg shadow-[#7652E8]/40 flex items-center justify-center">
+            <div className="w-full h-full rounded-[14px] bg-[#120E28] flex items-center justify-center">
+              <svg className="w-6 h-6 text-[#9B7AFB]" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2L2 9.5L12 17L22 9.5L12 2Z" opacity="0.9" />
+                <path d="M4 12.5L12 18.5L20 12.5" stroke="currentColor" strokeWidth="2" fill="none" />
+                <path d="M4 16L12 22L20 16" stroke="currentColor" strokeWidth="2" fill="none" />
               </svg>
             </div>
           </div>
-
-          <span className="text-xl sm:text-2xl font-black text-[#1F1442] tracking-tight font-sans">
-            NEXORA
-          </span>
-
-          <span className="text-[11px] font-bold text-[#7652E8] bg-[#EDE8FF] border border-[#DDD3FA] px-2.5 py-0.5 rounded-full">
-            v2.0
-          </span>
-        </div>
-
-        {/* Tagline */}
-        <p className="text-xs sm:text-sm text-[#483B6E] mt-2 font-medium tracking-tight">
-          "Every application. Every update. One place."
-        </p>
-      </header>
-
-      {/* 3D FLOATING DASHBOARD GLASS PREVIEW CARDS */}
-      <div className="relative z-10 w-full max-w-sm px-4 my-2 flex justify-center">
-        <div className="relative w-full max-w-[340px] h-[160px] perspective-[1000px]">
-          {/* Card Backdrop Glow */}
-          <div className="absolute inset-0 bg-[#7B42F6]/30 rounded-3xl blur-2xl transform scale-90" />
-
-          {/* Main Angled Glass Card Container */}
-          <div className="absolute inset-0 bg-gradient-to-br from-white/25 via-white/10 to-white/5 backdrop-blur-xl border border-white/30 rounded-[28px] p-4 shadow-2xl shadow-[#200A52]/50 flex flex-col justify-between overflow-hidden">
-            {/* Top row of micro-cards */}
-            <div className="flex items-start justify-between gap-2.5">
-              {/* Metric 1: Applications */}
-              <div className="flex-1 bg-white/[0.12] border border-white/20 rounded-2xl p-2.5 backdrop-blur-md flex items-center space-x-2">
-                <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-[#7652E8] to-[#9B7AFB] flex items-center justify-center text-white shrink-0 shadow-xs">
-                  <Briefcase className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <div className="text-[9px] uppercase font-bold text-white/70 tracking-wider">Applications</div>
-                  <div className="text-sm font-black text-white leading-tight">24</div>
-                </div>
-              </div>
-
-              {/* Metric 2: Interviews */}
-              <div className="bg-white/[0.12] border border-white/20 rounded-2xl p-2.5 backdrop-blur-md flex items-center space-x-2">
-                <div className="w-7 h-7 rounded-xl bg-emerald-500/80 flex items-center justify-center text-white shrink-0 shadow-xs">
-                  <Calendar className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <div className="text-[9px] uppercase font-bold text-white/70 tracking-wider">Interviews</div>
-                  <div className="text-sm font-black text-white leading-tight">3</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Bottom Row: Mini Bar Chart + Notification Pill */}
-            <div className="flex items-center justify-between pt-1">
-              {/* Mini Trend Bar Chart */}
-              <div className="flex items-end space-x-1.5 px-2">
-                <div className="w-1.5 h-3 bg-white/40 rounded-full" />
-                <div className="w-1.5 h-4.5 bg-white/60 rounded-full" />
-                <div className="w-1.5 h-6 bg-white/75 rounded-full" />
-                <div className="w-1.5 h-8 bg-gradient-to-t from-violet-300 to-white rounded-full shadow-xs" />
-                <div className="w-1.5 h-10 bg-white rounded-full shadow-sm" />
-              </div>
-
-              {/* Updates Badge Pill */}
-              <div className="inline-flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl bg-white/[0.12] border border-white/20 text-white backdrop-blur-md">
-                <Bell className="w-3 h-3 text-amber-300" />
-                <span className="text-[10px] font-bold">Updates</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              </div>
-            </div>
+          <div>
+            <span className="text-xl font-black text-white tracking-tight">NEXORA</span>
+            <span className="ml-2.5 text-[10px] uppercase font-bold tracking-widest text-[#B396FF] bg-violet-950/70 border border-violet-700/50 px-2.5 py-0.5 rounded-full">
+              Intelligence v2.0
+            </span>
           </div>
         </div>
-      </div>
 
-      {/* HERO TITLE & VALUE PROPOSITION */}
-      <div className="relative z-10 w-full max-w-md px-6 text-center my-3 space-y-2">
-        <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-snug">
-          Your Job Application <br /> Command Center
-        </h2>
-        <p className="text-xs sm:text-sm text-violet-200/90 font-normal max-w-xs mx-auto leading-relaxed">
-          Track applications, get real-time updates, and never miss an opportunity again.
-        </p>
-
-        {/* 3 Value Pillars with Dividers */}
-        <div className="flex items-center justify-center space-x-3 sm:space-x-4 pt-3 pb-2 text-violet-200">
-          <div className="flex flex-col items-center text-center space-y-1">
-            <div className="w-8 h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white">
-              <Target className="w-4 h-4" />
+        {/* Center Presentation: Headline & Floating Showcase */}
+        <div className="my-auto py-8 max-w-xl space-y-7">
+          <div className="space-y-3.5">
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-violet-500/10 border border-violet-500/25 text-[11px] font-bold text-violet-300">
+              <Sparkles className="w-3.5 h-3.5 text-[#9B7AFB]" />
+              <span>Real-Time Job Application Intelligence Platform</span>
             </div>
-            <span className="text-[10px] font-bold leading-tight">Track<br />Applications</span>
-          </div>
-
-          <div className="w-px h-8 bg-white/15" />
-
-          <div className="flex flex-col items-center text-center space-y-1">
-            <div className="w-8 h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white">
-              <Zap className="w-4 h-4" />
-            </div>
-            <span className="text-[10px] font-bold leading-tight">Real-time<br />Updates</span>
-          </div>
-
-          <div className="w-px h-8 bg-white/15" />
-
-          <div className="flex flex-col items-center text-center space-y-1">
-            <div className="w-8 h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white">
-              <BarChart3 className="w-4 h-4" />
-            </div>
-            <span className="text-[10px] font-bold leading-tight">Insights &<br />Opportunities</span>
-          </div>
-        </div>
-      </div>
-
-      {/* MAIN WHITE CARD CONTAINER (Exactly matching user image) */}
-      <div className="relative z-10 w-full max-w-md px-4 mt-2">
-        <div className="bg-white rounded-[32px] sm:rounded-[36px] p-6 sm:p-8 shadow-2xl shadow-[#1C0842]/40 border border-white space-y-5 transition-all">
-          {/* Card Header Title */}
-          <div className="text-center space-y-1">
-            <h3 className="text-xl sm:text-2xl font-black text-[#1C1438] tracking-tight">
-              {isRegister ? 'Create Your Account' : 'Welcome Back'}
-            </h3>
-            <p className="text-xs text-slate-400 font-medium">
-              {isRegister
-                ? 'Launch your intelligent job search workspace'
-                : 'Sign in to access your recruitment pipeline'}
+            <h1 className="text-3xl xl:text-4xl 2xl:text-5xl font-black text-white tracking-tight leading-[1.15]">
+              Every application. <br />
+              <span className="bg-gradient-to-r from-[#9B7AFB] via-violet-200 to-white bg-clip-text text-transparent">
+                Every update. One place.
+              </span>
+            </h1>
+            <p className="text-sm text-slate-300/80 leading-relaxed max-w-lg font-normal">
+              Take complete command of your career search. Track applications effortlessly, parse recruiter emails automatically, and maintain verified timeline evidence with zero manual friction.
             </p>
           </div>
 
-          {/* Segmented Pill Tab Switcher */}
-          <div className="flex bg-[#F5F2FC] p-1.5 rounded-2xl border border-[#EDE8F8]">
-            <button
-              type="button"
-              onClick={() => {
-                setIsRegister(false);
-                setError(null);
-              }}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                !isRegister
-                  ? 'bg-gradient-to-r from-[#7652E8] to-[#916DF8] text-white shadow-md shadow-[#7652E8]/30'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Sign In
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setIsRegister(true);
-                setError(null);
-              }}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                isRegister
-                  ? 'bg-gradient-to-r from-[#7652E8] to-[#916DF8] text-white shadow-md shadow-[#7652E8]/30'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Create Account
-            </button>
+          {/* Interactive Showcase Card: Detected Recruiter Email */}
+          <div className="p-5 rounded-3xl bg-white/[0.04] border border-white/[0.08] backdrop-blur-md shadow-2xl space-y-3.5 hover:border-violet-500/30 transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-xs font-bold text-white">Inbox Intelligence Detection</span>
+              </div>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/30">
+                94% Match Confidence
+              </span>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.05] space-y-1.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-slate-200">Google Careers</span>
+                <span className="text-[10px] text-slate-400">Just now</span>
+              </div>
+              <p className="text-xs font-semibold text-violet-300">
+                Invitation to Technical Interview: Senior Software Engineer
+              </p>
+              <p className="text-[11px] text-slate-400 leading-relaxed font-mono">
+                "Hi there, We reviewed your application and would like to invite you to interview with our engineering team..."
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between pt-1 text-[11px] text-slate-400">
+              <span className="flex items-center gap-1.5 text-emerald-400 font-semibold">
+                <CheckCircle2 className="w-3.5 h-3.5" /> Auto-updates application timeline
+              </span>
+              <span>AES-256 Encrypted</span>
+            </div>
           </div>
 
-          {/* Error Message */}
-          {error && (
-            <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-100 text-xs text-rose-600 font-semibold leading-relaxed animate-in fade-in">
-              {error}
-            </div>
-          )}
+          {/* Live Metrics Showcase Pills */}
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: 'Tracking Speed', val: '< 50ms', sub: 'Instant queries' },
+              { label: 'Detection Engine', val: '5 States', sub: 'Interview, Offer, Test' },
+              { label: 'Privacy Standard', val: 'Zero Tracking', sub: '100% Private Data' },
+            ].map((stat, i) => (
+              <div
+                key={i}
+                className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.06] text-center backdrop-blur-xs"
+              >
+                <div className="text-base font-black text-white">{stat.val}</div>
+                <div className="text-[11px] font-bold text-violet-300 mt-0.5">{stat.label}</div>
+                <div className="text-[10px] text-slate-500 mt-0.5">{stat.sub}</div>
+              </div>
+            ))}
+          </div>
+        </div>
 
-          {/* Demo Notice */}
-          {demoNotice && (
-            <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-100 text-xs text-emerald-700 font-bold flex items-center space-x-1.5 animate-in fade-in">
-              <Check className="w-4 h-4 text-emerald-600 stroke-[2.5]" />
-              <span>Demo credentials applied! Click "Open Workspace" to enter.</span>
-            </div>
-          )}
+        {/* Bottom Trust Footer */}
+        <div className="flex items-center space-x-6 text-xs text-slate-400 border-t border-white/[0.06] pt-6">
+          <div className="flex items-center space-x-1.5 text-slate-300 font-medium">
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <span>Bank-grade AES-256 Token Encryption</span>
+          </div>
+          <span className="text-white/20">•</span>
+          <span>Google OAuth 2.0 Read-Only</span>
+          <span className="text-white/20">•</span>
+          <span>Production Ready</span>
+        </div>
+      </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {isRegister && (
-              <>
-                {/* Full Name */}
-                <div>
-                  <label className="block text-xs font-bold text-[#1C1438] mb-1.5 text-left">
-                    Your Full Name
-                  </label>
-                  <div className="relative rounded-2xl border border-[#E8E2F5] bg-[#FAF9FD] focus-within:border-[#7652E8] focus-within:ring-4 focus-within:ring-[#7652E8]/10 transition-all">
-                    <UserIcon className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
-                    <input
-                      type="text"
-                      required
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="e.g. Adarsh Sharma"
-                      className="w-full pl-10 pr-3.5 py-3 text-xs sm:text-sm text-slate-900 font-medium placeholder:text-slate-400 focus:outline-none bg-transparent"
-                    />
+      {/* RIGHT COLUMN: FULLY TRANSPARENT GLASSMORPHIC AUTH EXPERIENCE */}
+      <div className="flex-1 flex flex-col justify-center items-center px-4 py-8 sm:p-8 lg:p-12 relative z-10 min-h-screen w-full">
+        <div className="w-full max-w-[430px] space-y-4 sm:space-y-5">
+
+          {/* VIBRANT MOBILE BRAND HERO (< lg screens) */}
+          <div className="lg:hidden text-center space-y-3 pt-1">
+            {/* 3D Radiant Emblem with Live Status Ping */}
+            <div className="relative inline-flex items-center justify-center">
+              <div className="w-16 h-16 rounded-[24px] bg-gradient-to-tr from-[#7652E8] via-[#916DF8] to-[#C4B5FD] p-[2px] shadow-2xl shadow-[#7652E8]/50 ring-4 ring-violet-500/20">
+                <div className="w-full h-full rounded-[22px] bg-[#120D2C] flex items-center justify-center">
+                  <svg className="w-8 h-8 text-[#A78BFA] transform -rotate-6" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2L2 9.5L12 17L22 9.5L12 2Z" />
+                    <path d="M4 12.5L12 18.5L20 12.5" stroke="currentColor" strokeWidth="2.2" fill="none" />
+                    <path d="M4 16L12 22L20 16" stroke="currentColor" strokeWidth="2.2" fill="none" />
+                  </svg>
+                </div>
+              </div>
+              <span className="absolute -top-1 -right-1 flex h-4 w-4">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-4 w-4 bg-emerald-500 border-2 border-[#090616]" />
+              </span>
+            </div>
+
+            {/* Typography & Value Proposition */}
+            <div>
+              <div className="flex items-center justify-center space-x-2">
+                <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">NEXORA</h1>
+                <span className="text-[10px] font-bold text-violet-300 bg-violet-900/70 border border-violet-700/50 px-2 py-0.5 rounded-full">
+                  v2.0
+                </span>
+              </div>
+              <p className="text-xs text-slate-300/80 mt-1 font-medium">
+                "Every application. Every update. One place."
+              </p>
+            </div>
+
+            {/* Floating Live Recruiter Intelligence Pill */}
+            <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.12] backdrop-blur-md shadow-lg text-[11px] text-slate-200">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping shrink-0" />
+              <span className="font-semibold truncate">Google Interview Invite detected</span>
+              <span className="text-[10px] font-bold text-[#C4B5FD] bg-violet-950/90 px-1.5 py-0.5 rounded-md">
+                94% Match
+              </span>
+            </div>
+          </div>
+
+          {/* LUXURY TRANSPARENT FROSTED GLASS CARD */}
+          <div className="p-[1.5px] rounded-[32px] sm:rounded-[36px] bg-gradient-to-b from-white/25 via-violet-500/20 to-white/10 shadow-[0_30px_90px_rgba(0,0,0,0.65)] backdrop-blur-2xl">
+            <div className="bg-[#120D2C]/80 sm:bg-[#120D2C]/85 backdrop-blur-3xl rounded-[30px] sm:rounded-[34px] p-6 sm:p-8 space-y-5 border border-white/[0.08] transition-all">
+
+              {/* Card Header & Smooth Segmented Control */}
+              <div className="space-y-3.5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-lg sm:text-xl font-black text-white tracking-tight flex items-center gap-2">
+                      <span>{isRegister ? 'Create Your Account' : 'Welcome Back'}</span>
+                      <Sparkles className="w-4 h-4 text-[#A78BFA]" />
+                    </h2>
+                    <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5 font-medium">
+                      {isRegister
+                        ? 'Launch your intelligent job search workspace'
+                        : 'Sign in to access your recruitment pipeline'}
+                    </p>
                   </div>
                 </div>
 
-                {/* Target Role */}
-                <div>
-                  <label className="block text-xs font-bold text-[#1C1438] mb-1.5 text-left">
-                    Target Job Role
-                  </label>
-                  <div className="relative rounded-2xl border border-[#E8E2F5] bg-[#FAF9FD] focus-within:border-[#7652E8] focus-within:ring-4 focus-within:ring-[#7652E8]/10 transition-all">
-                    <Briefcase className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
-                    <input
-                      type="text"
-                      value={targetRole}
-                      onChange={(e) => setTargetRole(e.target.value)}
-                      placeholder="e.g. Software Engineer, Product Designer"
-                      className="w-full pl-10 pr-3.5 py-3 text-xs sm:text-sm text-slate-900 font-medium placeholder:text-slate-400 focus:outline-none bg-transparent"
-                    />
-                  </div>
+                {/* Tactile Mode Switcher Tabs */}
+                <div className="flex bg-white/[0.05] p-1 rounded-2xl border border-white/[0.08]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsRegister(false);
+                      setError(null);
+                    }}
+                    className={`flex-1 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      !isRegister
+                        ? 'bg-gradient-to-r from-[#7652E8] to-[#916DF8] text-white shadow-md shadow-[#7652E8]/35'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsRegister(true);
+                      setError(null);
+                    }}
+                    className={`flex-1 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      isRegister
+                        ? 'bg-gradient-to-r from-[#7652E8] to-[#916DF8] text-white shadow-md shadow-[#7652E8]/35'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    Create Account
+                  </button>
                 </div>
-              </>
-            )}
-
-            {/* Email Address */}
-            <div>
-              <label className="block text-xs font-bold text-[#1C1438] mb-1.5 text-left">
-                Email Address
-              </label>
-              <div className="relative rounded-2xl border border-[#E8E2F5] bg-[#FAF9FD] focus-within:border-[#7652E8] focus-within:ring-4 focus-within:ring-[#7652E8]/10 transition-all">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="test2@gmail.com"
-                  className="w-full pl-10 pr-3.5 py-3 text-xs sm:text-sm text-slate-900 font-medium placeholder:text-slate-400 focus:outline-none bg-transparent"
-                />
               </div>
-            </div>
 
-            {/* Password */}
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-bold text-[#1C1438]">
-                  Password
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="text-xs font-bold text-[#7652E8] hover:text-[#5B37D4] cursor-pointer"
-                >
-                  {showPassword ? 'Hide' : 'Show'}
-                </button>
-              </div>
-              <div className="relative rounded-2xl border border-[#E8E2F5] bg-[#FAF9FD] focus-within:border-[#7652E8] focus-within:ring-4 focus-within:ring-[#7652E8]/10 transition-all">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  className="w-full pl-10 pr-11 py-3 text-xs sm:text-sm text-slate-900 font-medium placeholder:text-slate-400 focus:outline-none bg-transparent"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600 cursor-pointer"
-                  tabIndex={-1}
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            {/* Submit Action Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-[#7652E8] via-[#855CF8] to-[#9B7AFB] hover:opacity-95 active:scale-[0.98] text-white font-bold text-xs sm:text-sm shadow-lg shadow-[#7652E8]/35 transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-60 pt-3"
-            >
-              {loading ? (
-                <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Processing...</span>
+              {/* Error Banner */}
+              {error && (
+                <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-300 font-semibold leading-relaxed flex items-start space-x-2 animate-in fade-in">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-400 mt-1.5 shrink-0" />
+                  <span>{error}</span>
                 </div>
-              ) : (
-                <>
-                  <span>{isRegister ? 'Get Started' : 'Open Workspace'}</span>
-                  <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-                </>
               )}
-            </button>
-          </form>
 
-          {/* "or continue with" Divider */}
-          <div className="relative flex py-1 items-center">
-            <div className="flex-grow border-t border-slate-100" />
-            <span className="shrink-0 mx-3 text-[11px] text-slate-400 font-medium">
-              or continue with
-            </span>
-            <div className="flex-grow border-t border-slate-100" />
+              {/* ATTRACTIVE TRANSPARENT FORM FILL AREA */}
+              <form onSubmit={handleSubmit} className="space-y-3.5">
+                {isRegister && (
+                  <>
+                    {/* Full Name Input */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                          Full Name
+                        </label>
+                      </div>
+                      <div
+                        className={`relative rounded-2xl border transition-all duration-200 ${
+                          focusedField === 'name'
+                            ? 'border-[#A78BFA] bg-white/[0.09] ring-4 ring-[#7652E8]/25 shadow-[0_0_25px_rgba(118,82,232,0.35)]'
+                            : 'border-white/[0.12] bg-white/[0.04] hover:border-white/[0.22] hover:bg-white/[0.06]'
+                        }`}
+                      >
+                        <UserIcon
+                          className={`w-4 h-4 absolute left-3.5 top-3.5 transition-colors ${
+                            focusedField === 'name' ? 'text-[#A78BFA]' : 'text-slate-400'
+                          }`}
+                        />
+                        <input
+                          type="text"
+                          required
+                          value={name}
+                          onFocus={() => setFocusedField('name')}
+                          onBlur={() => setFocusedField(null)}
+                          onChange={(e) => setName(e.target.value)}
+                          placeholder="e.g. Adarsh Sharma"
+                          className="w-full pl-10 pr-3.5 py-3 rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-500 focus:outline-none bg-transparent"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Target Job Role Input */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                          Target Job Role
+                        </label>
+                      </div>
+                      <div
+                        className={`relative rounded-2xl border transition-all duration-200 ${
+                          focusedField === 'role'
+                            ? 'border-[#A78BFA] bg-white/[0.09] ring-4 ring-[#7652E8]/25 shadow-[0_0_25px_rgba(118,82,232,0.35)]'
+                            : 'border-white/[0.12] bg-white/[0.04] hover:border-white/[0.22] hover:bg-white/[0.06]'
+                        }`}
+                      >
+                        <Briefcase
+                          className={`w-4 h-4 absolute left-3.5 top-3.5 transition-colors ${
+                            focusedField === 'role' ? 'text-[#A78BFA]' : 'text-slate-400'
+                          }`}
+                        />
+                        <input
+                          type="text"
+                          value={targetRole}
+                          onFocus={() => setFocusedField('role')}
+                          onBlur={() => setFocusedField(null)}
+                          onChange={(e) => setTargetRole(e.target.value)}
+                          placeholder="e.g. Full Stack Developer, Product Designer"
+                          className="w-full pl-10 pr-3.5 py-3 rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-500 focus:outline-none bg-transparent"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Email Address Input */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                      Email Address
+                    </label>
+                    <span className="text-[10px] text-slate-400 font-medium">Work or Personal</span>
+                  </div>
+                  <div
+                    className={`relative rounded-2xl border transition-all duration-200 ${
+                      focusedField === 'email'
+                        ? 'border-[#A78BFA] bg-white/[0.09] ring-4 ring-[#7652E8]/25 shadow-[0_0_25px_rgba(118,82,232,0.35)]'
+                        : 'border-white/[0.12] bg-white/[0.04] hover:border-white/[0.22] hover:bg-white/[0.06]'
+                    }`}
+                  >
+                    <Mail
+                      className={`w-4 h-4 absolute left-3.5 top-3.5 transition-colors ${
+                        focusedField === 'email' ? 'text-[#A78BFA]' : 'text-slate-400'
+                      }`}
+                    />
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onFocus={() => setFocusedField('email')}
+                      onBlur={() => setFocusedField(null)}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@domain.com"
+                      className="w-full pl-10 pr-3.5 py-3 rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-500 focus:outline-none bg-transparent"
+                    />
+                  </div>
+                </div>
+
+                {/* Password Input */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                      Password
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="text-[11px] font-bold text-[#A78BFA] hover:text-white cursor-pointer flex items-center space-x-1"
+                    >
+                      <span>{showPassword ? 'Hide' : 'Show'}</span>
+                    </button>
+                  </div>
+                  <div
+                    className={`relative rounded-2xl border transition-all duration-200 ${
+                      focusedField === 'password'
+                        ? 'border-[#A78BFA] bg-white/[0.09] ring-4 ring-[#7652E8]/25 shadow-[0_0_25px_rgba(118,82,232,0.35)]'
+                        : 'border-white/[0.12] bg-white/[0.04] hover:border-white/[0.22] hover:bg-white/[0.06]'
+                    }`}
+                  >
+                    <Lock
+                      className={`w-4 h-4 absolute left-3.5 top-3.5 transition-colors ${
+                        focusedField === 'password' ? 'text-[#A78BFA]' : 'text-slate-400'
+                      }`}
+                    />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={password}
+                      onFocus={() => setFocusedField('password')}
+                      onBlur={() => setFocusedField(null)}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••••••"
+                      className="w-full pl-10 pr-11 py-3 rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-500 focus:outline-none bg-transparent"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-2.5 p-1.5 text-slate-400 hover:text-white cursor-pointer rounded-lg hover:bg-white/[0.08] transition-colors"
+                      tabIndex={-1}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+
+                  {/* Interactive Password Strength Indicator (Active during Registration) */}
+                  {isRegister && password && (
+                    <div className="mt-2 space-y-1 animate-in fade-in">
+                      <div className="flex items-center space-x-1.5">
+                        <div
+                          className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                            passwordStrength >= 1 ? 'bg-amber-400' : 'bg-white/[0.1]'
+                          }`}
+                        />
+                        <div
+                          className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                            passwordStrength >= 2 ? 'bg-[#916DF8]' : 'bg-white/[0.1]'
+                          }`}
+                        />
+                        <div
+                          className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                            passwordStrength >= 3 ? 'bg-emerald-400' : 'bg-white/[0.1]'
+                          }`}
+                        />
+                      </div>
+                      <div className="flex justify-between items-center text-[10px] text-slate-400 px-0.5">
+                        <span>Security level:</span>
+                        <span className="font-bold text-slate-300">
+                          {passwordStrength === 1 && 'Basic (Add capital letter or number)'}
+                          {passwordStrength === 2 && 'Good (Add special character)'}
+                          {passwordStrength >= 3 && 'Strong & Secure'}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Tactile Action Button */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-[#7652E8] via-[#8B5CF6] to-[#A855F7] hover:from-[#6D46E6] hover:to-[#9947E9] active:scale-[0.98] text-white text-xs sm:text-sm font-black tracking-wide shadow-xl shadow-[#7652E8]/40 transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-60 mt-2"
+                >
+                  {loading ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Processing securely...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <span>{isRegister ? 'Create Free Workspace' : 'Open Workspace'}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </form>
+
+              {/* 1-Tap Quick Demo Candidate Autofill Action */}
+              {!isRegister && (
+                <div className="pt-0.5">
+                  <button
+                    type="button"
+                    onClick={handleQuickFillDemo}
+                    className="w-full py-2.5 px-3.5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-violet-400/30 text-violet-300 hover:text-white text-xs font-bold transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-2xs active:scale-[0.99]"
+                  >
+                    {demoFilled ? (
+                      <>
+                        <Check className="w-4 h-4 text-emerald-400 stroke-[2.5]" />
+                        <span className="text-emerald-300 font-bold">Demo Account Filled! Ready to sign in</span>
+                      </>
+                    ) : (
+                      <>
+                        <Zap className="w-3.5 h-3.5 text-[#A78BFA] fill-[#A78BFA]" />
+                        <span>1-Tap Demo Account (Quick Fill)</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+
+              {/* Security badge footer */}
+              <div className="pt-2 border-t border-white/[0.08] flex items-center justify-center space-x-1.5 text-[11px] text-slate-400">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span>Encrypted Session • Private Candidate Record</span>
+              </div>
+            </div>
           </div>
 
-          {/* Social / Quick Action Buttons */}
-          <div className="grid grid-cols-2 gap-3">
-            {/* Google Option */}
-            <button
-              type="button"
-              onClick={handleGoogleAuth}
-              className="py-2.5 px-3 rounded-2xl border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-2xs"
-            >
-              <svg className="w-4 h-4" viewBox="0 0 24 24">
-                <path
-                  fill="#4285F4"
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                />
-                <path
-                  fill="#EA4335"
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                />
-              </svg>
-              <span>Google</span>
-            </button>
-
-            {/* Quick Demo / GitHub Option */}
-            <button
-              type="button"
-              onClick={handleQuickDemoFill}
-              className="py-2.5 px-3 rounded-2xl border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-2xs"
-            >
-              <svg className="w-4 h-4 fill-slate-800" viewBox="0 0 24 24">
-                <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-              </svg>
-              <span>GitHub</span>
-            </button>
+          {/* MOBILE VALUE METRICS TICKER (< lg screens) */}
+          <div className="lg:hidden flex items-center justify-around px-2 pt-1 text-[11px] text-slate-400">
+            <div className="flex items-center space-x-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              <span>AES-256 Encrypted</span>
+            </div>
+            <span className="text-white/20">•</span>
+            <div className="flex items-center space-x-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+              <span>&lt; 50ms Queries</span>
+            </div>
+            <span className="text-white/20">•</span>
+            <div className="flex items-center space-x-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-violet-400" />
+              <span>Zero Spam</span>
+            </div>
           </div>
 
-          {/* Bottom Security Footer */}
-          <div className="pt-2 flex items-center justify-center space-x-1.5 text-[11px] text-slate-500 font-medium">
-            <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
-            <span>Encrypted Session • Private Candidate Record</span>
-          </div>
         </div>
       </div>
     </div>
