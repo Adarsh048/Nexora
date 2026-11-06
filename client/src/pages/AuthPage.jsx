@@ -316,7 +316,7 @@ export const AuthPage = () => {
                         onBlur={() => setFocusedField(null)}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="e.g. Adarsh Sharma"
-                        className="w-full pl-9 sm:pl-10 pr-3 sm:pr-3.5 py-2 sm:py-3.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-500 focus:outline-none bg-transparent"
+                        className="w-full pl-9 sm:pl-10 pr-3 sm:pr-3.5 py-2 sm:py-3.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-400/50 placeholder:font-normal placeholder:transition-opacity focus:placeholder:opacity-35 focus:outline-none bg-transparent"
                       />
                     </div>
                   </div>
@@ -344,8 +344,8 @@ export const AuthPage = () => {
                         onFocus={() => setFocusedField('role')}
                         onBlur={() => setFocusedField(null)}
                         onChange={(e) => setTargetRole(e.target.value)}
-                        placeholder="e.g. Full Stack Developer, Product Designer"
-                        className="w-full pl-9 sm:pl-10 pr-3 sm:pr-3.5 py-2 sm:py-3.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-500 focus:outline-none bg-transparent"
+                        placeholder="e.g. Senior Software Engineer"
+                        className="w-full pl-9 sm:pl-10 pr-3 sm:pr-3.5 py-2 sm:py-3.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-400/50 placeholder:font-normal placeholder:transition-opacity focus:placeholder:opacity-35 focus:outline-none bg-transparent"
                       />
                     </div>
                   </div>
@@ -379,8 +379,8 @@ export const AuthPage = () => {
                     onFocus={() => setFocusedField('email')}
                     onBlur={() => setFocusedField(null)}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@domain.com"
-                    className="w-full pl-9 sm:pl-10 pr-3 sm:pr-3.5 py-2 sm:py-3.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-500 focus:outline-none bg-transparent"
+                    placeholder="name@company.com"
+                    className="w-full pl-9 sm:pl-10 pr-3 sm:pr-3.5 py-2 sm:py-3.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-400/50 placeholder:font-normal placeholder:transition-opacity focus:placeholder:opacity-35 focus:outline-none bg-transparent"
                   />
                 </div>
               </div>
@@ -418,8 +418,8 @@ export const AuthPage = () => {
                     onFocus={() => setFocusedField('password')}
                     onBlur={() => setFocusedField(null)}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••••••"
-                    className="w-full pl-9 sm:pl-10 pr-9 sm:pr-11 py-2 sm:py-3.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-500 focus:outline-none bg-transparent"
+                    placeholder={isRegister ? "Create a secure password" : "Enter your password"}
+                    className="w-full pl-9 sm:pl-10 pr-9 sm:pr-11 py-2 sm:py-3.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-400/50 placeholder:font-normal placeholder:transition-opacity focus:placeholder:opacity-35 focus:outline-none bg-transparent"
                   />
                   <button
                     type="button"
