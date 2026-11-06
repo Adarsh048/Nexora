@@ -6,6 +6,8 @@ import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 
+import { connectDB } from './config/db.js';
+
 // Route imports
 import authRoutes from './routes/authRoutes.js';
 import applicationRoutes from './routes/applicationRoutes.js';
@@ -31,7 +33,6 @@ app.use(helmet({
 // Robust CORS supporting local development, Vercel preview URLs, and production domains
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow all in production/preview on Vercel or locally
     callback(null, true);
   },
   credentials: true,
@@ -55,7 +56,7 @@ const apiLimiter = rateLimit({
 });
 app.use('/api', apiLimiter);
 
-// Health check endpoint
+// Health check endpoint (always accessible without DB dependency)
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'healthy',
@@ -64,6 +65,20 @@ app.get('/api/health', (req, res) => {
     environment: process.env.NODE_ENV || 'development',
     timestamp: new Date().toISOString(),
   });
+});
+
+// Database connection readiness middleware for all API routes
+app.use('/api', async (req, res, next) => {
+  if (req.path === '/health') return next();
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    return res.status(503).json({
+      success: false,
+      message: `Database connection error: ${err.message}. Please verify your MONGO_URI in Render settings.`,
+    });
+  }
 });
 
 // API Routes
@@ -89,4 +104,3 @@ app.use((err, req, res, next) => {
 });
 
 export default app;
-
