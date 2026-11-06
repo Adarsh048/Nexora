@@ -242,296 +242,287 @@ export const AuthPage = () => {
             </div>
           </div>
 
-          {/* LUXURY TRANSPARENT FROSTED GLASS CARD */}
-          <div className="p-[1.5px] rounded-[32px] sm:rounded-[36px] bg-gradient-to-b from-white/25 via-violet-500/20 to-white/10 shadow-[0_30px_90px_rgba(0,0,0,0.65)] backdrop-blur-2xl">
-            <div className="bg-[#120D2C]/80 sm:bg-[#120D2C]/85 backdrop-blur-3xl rounded-[30px] sm:rounded-[34px] p-6 sm:p-8 space-y-5 border border-white/[0.08] transition-all">
+          {/* BORDERLESS FORM AREA (No outer card box wrapper) */}
+          <div className="w-full space-y-5 transition-all">
+            {/* Header Title & Tab Switcher */}
+            <div className="space-y-3.5">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2">
+                  <span>{isRegister ? 'Create Your Account' : 'Welcome Back'}</span>
+                  <Sparkles className="w-4 h-4 text-[#A78BFA]" />
+                </h2>
+                <p className="text-xs text-slate-400 mt-1 font-medium">
+                  {isRegister
+                    ? 'Launch your intelligent job search workspace'
+                    : 'Sign in to access your recruitment pipeline'}
+                </p>
+              </div>
 
-              {/* Card Header & Smooth Segmented Control */}
-              <div className="space-y-3.5">
-                <div className="flex items-center justify-between">
+              {/* Mode Switcher Tabs */}
+              <div className="flex bg-white/[0.06] p-1.5 rounded-2xl border border-white/[0.12] backdrop-blur-md">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsRegister(false);
+                    setError(null);
+                  }}
+                  className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    !isRegister
+                      ? 'bg-gradient-to-r from-[#7652E8] to-[#916DF8] text-white shadow-md shadow-[#7652E8]/35'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Sign In
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsRegister(true);
+                    setError(null);
+                  }}
+                  className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    isRegister
+                      ? 'bg-gradient-to-r from-[#7652E8] to-[#916DF8] text-white shadow-md shadow-[#7652E8]/35'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Create Account
+                </button>
+              </div>
+            </div>
+
+            {/* Error Banner */}
+            {error && (
+              <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-300 font-semibold leading-relaxed flex items-start space-x-2 animate-in fade-in">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-400 mt-1.5 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            {/* Form Fields */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {isRegister && (
+                <>
+                  {/* Full Name Input */}
                   <div>
-                    <h2 className="text-lg sm:text-xl font-black text-white tracking-tight flex items-center gap-2">
-                      <span>{isRegister ? 'Create Your Account' : 'Welcome Back'}</span>
-                      <Sparkles className="w-4 h-4 text-[#A78BFA]" />
-                    </h2>
-                    <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5 font-medium">
-                      {isRegister
-                        ? 'Launch your intelligent job search workspace'
-                        : 'Sign in to access your recruitment pipeline'}
-                    </p>
+                    <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5">
+                      Full Name
+                    </label>
+                    <div
+                      className={`relative rounded-2xl border transition-all duration-200 ${
+                        focusedField === 'name'
+                          ? 'border-[#A78BFA] bg-white/[0.12] ring-4 ring-[#7652E8]/30 shadow-[0_0_25px_rgba(118,82,232,0.35)]'
+                          : 'border-white/[0.14] bg-white/[0.06] hover:border-white/[0.25] hover:bg-white/[0.08]'
+                      }`}
+                    >
+                      <UserIcon
+                        className={`w-4 h-4 absolute left-3.5 top-3.5 transition-colors ${
+                          focusedField === 'name' ? 'text-[#A78BFA]' : 'text-slate-400'
+                        }`}
+                      />
+                      <input
+                        type="text"
+                        required
+                        value={name}
+                        onFocus={() => setFocusedField('name')}
+                        onBlur={() => setFocusedField(null)}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="e.g. Adarsh Sharma"
+                        className="w-full pl-10 pr-3.5 py-3.5 rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-500 focus:outline-none bg-transparent"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* Tactile Mode Switcher Tabs */}
-                <div className="flex bg-white/[0.05] p-1 rounded-2xl border border-white/[0.08]">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsRegister(false);
-                      setError(null);
-                    }}
-                    className={`flex-1 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                      !isRegister
-                        ? 'bg-gradient-to-r from-[#7652E8] to-[#916DF8] text-white shadow-md shadow-[#7652E8]/35'
-                        : 'text-slate-400 hover:text-white'
+                  {/* Target Job Role Input */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1.5">
+                      Target Job Role
+                    </label>
+                    <div
+                      className={`relative rounded-2xl border transition-all duration-200 ${
+                        focusedField === 'role'
+                          ? 'border-[#A78BFA] bg-white/[0.12] ring-4 ring-[#7652E8]/30 shadow-[0_0_25px_rgba(118,82,232,0.35)]'
+                          : 'border-white/[0.14] bg-white/[0.06] hover:border-white/[0.25] hover:bg-white/[0.08]'
+                      }`}
+                    >
+                      <Briefcase
+                        className={`w-4 h-4 absolute left-3.5 top-3.5 transition-colors ${
+                          focusedField === 'role' ? 'text-[#A78BFA]' : 'text-slate-400'
+                        }`}
+                      />
+                      <input
+                        type="text"
+                        value={targetRole}
+                        onFocus={() => setFocusedField('role')}
+                        onBlur={() => setFocusedField(null)}
+                        onChange={(e) => setTargetRole(e.target.value)}
+                        placeholder="e.g. Full Stack Developer, Product Designer"
+                        className="w-full pl-10 pr-3.5 py-3.5 rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-500 focus:outline-none bg-transparent"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Email Address Input */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-bold text-slate-200 uppercase tracking-wider">
+                    Email Address
+                  </label>
+                  <span className="text-[10px] text-slate-400 font-medium">Work or Personal</span>
+                </div>
+                <div
+                  className={`relative rounded-2xl border transition-all duration-200 ${
+                    focusedField === 'email'
+                      ? 'border-[#A78BFA] bg-white/[0.12] ring-4 ring-[#7652E8]/30 shadow-[0_0_25px_rgba(118,82,232,0.35)]'
+                      : 'border-white/[0.14] bg-white/[0.06] hover:border-white/[0.25] hover:bg-white/[0.08]'
+                  }`}
+                >
+                  <Mail
+                    className={`w-4 h-4 absolute left-3.5 top-3.5 transition-colors ${
+                      focusedField === 'email' ? 'text-[#A78BFA]' : 'text-slate-400'
                     }`}
-                  >
-                    Sign In
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsRegister(true);
-                      setError(null);
-                    }}
-                    className={`flex-1 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                      isRegister
-                        ? 'bg-gradient-to-r from-[#7652E8] to-[#916DF8] text-white shadow-md shadow-[#7652E8]/35'
-                        : 'text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    Create Account
-                  </button>
+                  />
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onFocus={() => setFocusedField('email')}
+                    onBlur={() => setFocusedField(null)}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@domain.com"
+                    className="w-full pl-10 pr-3.5 py-3.5 rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-500 focus:outline-none bg-transparent"
+                  />
                 </div>
               </div>
 
-              {/* Error Banner */}
-              {error && (
-                <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-300 font-semibold leading-relaxed flex items-start space-x-2 animate-in fade-in">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-400 mt-1.5 shrink-0" />
-                  <span>{error}</span>
+              {/* Password Input */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-bold text-slate-200 uppercase tracking-wider">
+                    Password
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="text-xs font-bold text-[#A78BFA] hover:text-white cursor-pointer flex items-center space-x-1"
+                  >
+                    <span>{showPassword ? 'Hide' : 'Show'}</span>
+                  </button>
                 </div>
-              )}
+                <div
+                  className={`relative rounded-2xl border transition-all duration-200 ${
+                    focusedField === 'password'
+                      ? 'border-[#A78BFA] bg-white/[0.12] ring-4 ring-[#7652E8]/30 shadow-[0_0_25px_rgba(118,82,232,0.35)]'
+                      : 'border-white/[0.14] bg-white/[0.06] hover:border-white/[0.25] hover:bg-white/[0.08]'
+                  }`}
+                >
+                  <Lock
+                    className={`w-4 h-4 absolute left-3.5 top-3.5 transition-colors ${
+                      focusedField === 'password' ? 'text-[#A78BFA]' : 'text-slate-400'
+                    }`}
+                  />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={password}
+                    onFocus={() => setFocusedField('password')}
+                    onBlur={() => setFocusedField(null)}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    className="w-full pl-10 pr-11 py-3.5 rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-500 focus:outline-none bg-transparent"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 p-1 text-slate-400 hover:text-white cursor-pointer rounded-lg hover:bg-white/[0.08] transition-colors"
+                    tabIndex={-1}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
 
-              {/* ATTRACTIVE TRANSPARENT FORM FILL AREA */}
-              <form onSubmit={handleSubmit} className="space-y-3.5">
-                {isRegister && (
+                {/* Password Strength Indicator */}
+                {isRegister && password && (
+                  <div className="mt-2 space-y-1 animate-in fade-in">
+                    <div className="flex items-center space-x-1.5">
+                      <div
+                        className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                          passwordStrength >= 1 ? 'bg-amber-400' : 'bg-white/[0.1]'
+                        }`}
+                      />
+                      <div
+                        className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                          passwordStrength >= 2 ? 'bg-[#916DF8]' : 'bg-white/[0.1]'
+                        }`}
+                      />
+                      <div
+                        className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                          passwordStrength >= 3 ? 'bg-emerald-400' : 'bg-white/[0.1]'
+                        }`}
+                      />
+                    </div>
+                    <div className="flex justify-between items-center text-[10px] text-slate-400 px-0.5">
+                      <span>Security level:</span>
+                      <span className="font-bold text-slate-300">
+                        {passwordStrength === 1 && 'Basic (Add capital letter or number)'}
+                        {passwordStrength === 2 && 'Good (Add special character)'}
+                        {passwordStrength >= 3 && 'Strong & Secure'}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#7652E8] via-[#8B5CF6] to-[#A855F7] hover:from-[#6D46E6] hover:to-[#9947E9] active:scale-[0.98] text-white text-xs sm:text-sm font-black tracking-wide shadow-xl shadow-[#7652E8]/40 transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-60 mt-3"
+              >
+                {loading ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Processing securely...</span>
+                  </div>
+                ) : (
                   <>
-                    {/* Full Name Input */}
-                    <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
-                          Full Name
-                        </label>
-                      </div>
-                      <div
-                        className={`relative rounded-2xl border transition-all duration-200 ${
-                          focusedField === 'name'
-                            ? 'border-[#A78BFA] bg-white/[0.09] ring-4 ring-[#7652E8]/25 shadow-[0_0_25px_rgba(118,82,232,0.35)]'
-                            : 'border-white/[0.12] bg-white/[0.04] hover:border-white/[0.22] hover:bg-white/[0.06]'
-                        }`}
-                      >
-                        <UserIcon
-                          className={`w-4 h-4 absolute left-3.5 top-3.5 transition-colors ${
-                            focusedField === 'name' ? 'text-[#A78BFA]' : 'text-slate-400'
-                          }`}
-                        />
-                        <input
-                          type="text"
-                          required
-                          value={name}
-                          onFocus={() => setFocusedField('name')}
-                          onBlur={() => setFocusedField(null)}
-                          onChange={(e) => setName(e.target.value)}
-                          placeholder="e.g. Adarsh Sharma"
-                          className="w-full pl-10 pr-3.5 py-3 rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-500 focus:outline-none bg-transparent"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Target Job Role Input */}
-                    <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
-                          Target Job Role
-                        </label>
-                      </div>
-                      <div
-                        className={`relative rounded-2xl border transition-all duration-200 ${
-                          focusedField === 'role'
-                            ? 'border-[#A78BFA] bg-white/[0.09] ring-4 ring-[#7652E8]/25 shadow-[0_0_25px_rgba(118,82,232,0.35)]'
-                            : 'border-white/[0.12] bg-white/[0.04] hover:border-white/[0.22] hover:bg-white/[0.06]'
-                        }`}
-                      >
-                        <Briefcase
-                          className={`w-4 h-4 absolute left-3.5 top-3.5 transition-colors ${
-                            focusedField === 'role' ? 'text-[#A78BFA]' : 'text-slate-400'
-                          }`}
-                        />
-                        <input
-                          type="text"
-                          value={targetRole}
-                          onFocus={() => setFocusedField('role')}
-                          onBlur={() => setFocusedField(null)}
-                          onChange={(e) => setTargetRole(e.target.value)}
-                          placeholder="e.g. Full Stack Developer, Product Designer"
-                          className="w-full pl-10 pr-3.5 py-3 rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-500 focus:outline-none bg-transparent"
-                        />
-                      </div>
-                    </div>
+                    <span>{isRegister ? 'Create Free Workspace' : 'Open Workspace'}</span>
+                    <ArrowRight className="w-4 h-4" />
                   </>
                 )}
+              </button>
+            </form>
 
-                {/* Email Address Input */}
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
-                      Email Address
-                    </label>
-                    <span className="text-[10px] text-slate-400 font-medium">Work or Personal</span>
-                  </div>
-                  <div
-                    className={`relative rounded-2xl border transition-all duration-200 ${
-                      focusedField === 'email'
-                        ? 'border-[#A78BFA] bg-white/[0.09] ring-4 ring-[#7652E8]/25 shadow-[0_0_25px_rgba(118,82,232,0.35)]'
-                        : 'border-white/[0.12] bg-white/[0.04] hover:border-white/[0.22] hover:bg-white/[0.06]'
-                    }`}
-                  >
-                    <Mail
-                      className={`w-4 h-4 absolute left-3.5 top-3.5 transition-colors ${
-                        focusedField === 'email' ? 'text-[#A78BFA]' : 'text-slate-400'
-                      }`}
-                    />
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onFocus={() => setFocusedField('email')}
-                      onBlur={() => setFocusedField(null)}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="you@domain.com"
-                      className="w-full pl-10 pr-3.5 py-3 rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-500 focus:outline-none bg-transparent"
-                    />
-                  </div>
-                </div>
-
-                {/* Password Input */}
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
-                      Password
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="text-[11px] font-bold text-[#A78BFA] hover:text-white cursor-pointer flex items-center space-x-1"
-                    >
-                      <span>{showPassword ? 'Hide' : 'Show'}</span>
-                    </button>
-                  </div>
-                  <div
-                    className={`relative rounded-2xl border transition-all duration-200 ${
-                      focusedField === 'password'
-                        ? 'border-[#A78BFA] bg-white/[0.09] ring-4 ring-[#7652E8]/25 shadow-[0_0_25px_rgba(118,82,232,0.35)]'
-                        : 'border-white/[0.12] bg-white/[0.04] hover:border-white/[0.22] hover:bg-white/[0.06]'
-                    }`}
-                  >
-                    <Lock
-                      className={`w-4 h-4 absolute left-3.5 top-3.5 transition-colors ${
-                        focusedField === 'password' ? 'text-[#A78BFA]' : 'text-slate-400'
-                      }`}
-                    />
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                      value={password}
-                      onFocus={() => setFocusedField('password')}
-                      onBlur={() => setFocusedField(null)}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••••••"
-                      className="w-full pl-10 pr-11 py-3 rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-500 focus:outline-none bg-transparent"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-2.5 p-1.5 text-slate-400 hover:text-white cursor-pointer rounded-lg hover:bg-white/[0.08] transition-colors"
-                      tabIndex={-1}
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-
-                  {/* Interactive Password Strength Indicator (Active during Registration) */}
-                  {isRegister && password && (
-                    <div className="mt-2 space-y-1 animate-in fade-in">
-                      <div className="flex items-center space-x-1.5">
-                        <div
-                          className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
-                            passwordStrength >= 1 ? 'bg-amber-400' : 'bg-white/[0.1]'
-                          }`}
-                        />
-                        <div
-                          className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
-                            passwordStrength >= 2 ? 'bg-[#916DF8]' : 'bg-white/[0.1]'
-                          }`}
-                        />
-                        <div
-                          className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
-                            passwordStrength >= 3 ? 'bg-emerald-400' : 'bg-white/[0.1]'
-                          }`}
-                        />
-                      </div>
-                      <div className="flex justify-between items-center text-[10px] text-slate-400 px-0.5">
-                        <span>Security level:</span>
-                        <span className="font-bold text-slate-300">
-                          {passwordStrength === 1 && 'Basic (Add capital letter or number)'}
-                          {passwordStrength === 2 && 'Good (Add special character)'}
-                          {passwordStrength >= 3 && 'Strong & Secure'}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Tactile Action Button */}
+            {/* 1-Tap Quick Demo Candidate Autofill Action */}
+            {!isRegister && (
+              <div className="pt-1">
                 <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-[#7652E8] via-[#8B5CF6] to-[#A855F7] hover:from-[#6D46E6] hover:to-[#9947E9] active:scale-[0.98] text-white text-xs sm:text-sm font-black tracking-wide shadow-xl shadow-[#7652E8]/40 transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-60 mt-2"
+                  type="button"
+                  onClick={handleQuickFillDemo}
+                  className="w-full py-3 px-3.5 rounded-2xl bg-white/[0.06] hover:bg-white/[0.1] border border-violet-400/30 text-violet-300 hover:text-white text-xs font-bold transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-sm active:scale-[0.99]"
                 >
-                  {loading ? (
-                    <div className="flex items-center space-x-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      <span>Processing securely...</span>
-                    </div>
+                  {demoFilled ? (
+                    <>
+                      <Check className="w-4 h-4 text-emerald-400 stroke-[2.5]" />
+                      <span className="text-emerald-300 font-bold">Demo Account Filled! Ready to sign in</span>
+                    </>
                   ) : (
                     <>
-                      <span>{isRegister ? 'Create Free Workspace' : 'Open Workspace'}</span>
-                      <ArrowRight className="w-4 h-4" />
+                      <Zap className="w-3.5 h-3.5 text-[#A78BFA] fill-[#A78BFA]" />
+                      <span>1-Tap Demo Account (Quick Fill)</span>
                     </>
                   )}
                 </button>
-              </form>
-
-              {/* 1-Tap Quick Demo Candidate Autofill Action */}
-              {!isRegister && (
-                <div className="pt-0.5">
-                  <button
-                    type="button"
-                    onClick={handleQuickFillDemo}
-                    className="w-full py-2.5 px-3.5 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-violet-400/30 text-violet-300 hover:text-white text-xs font-bold transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-2xs active:scale-[0.99]"
-                  >
-                    {demoFilled ? (
-                      <>
-                        <Check className="w-4 h-4 text-emerald-400 stroke-[2.5]" />
-                        <span className="text-emerald-300 font-bold">Demo Account Filled! Ready to sign in</span>
-                      </>
-                    ) : (
-                      <>
-                        <Zap className="w-3.5 h-3.5 text-[#A78BFA] fill-[#A78BFA]" />
-                        <span>1-Tap Demo Account (Quick Fill)</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              )}
-
-              {/* Security badge footer */}
-              <div className="pt-2 border-t border-white/[0.08] flex items-center justify-center space-x-1.5 text-[11px] text-slate-400">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span>Encrypted Session • Private Candidate Record</span>
               </div>
+            )}
+
+            {/* Security badge footer */}
+            <div className="pt-3 border-t border-white/[0.08] flex items-center justify-center space-x-1.5 text-[11px] text-slate-400">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+              <span>Encrypted Session • Private Candidate Record</span>
             </div>
           </div>
 
