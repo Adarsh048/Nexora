@@ -15,11 +15,18 @@ export async function connectDB() {
     return cachedConn;
   }
 
+  const uri = process.env.MONGO_URI || (process.env.NODE_ENV === 'development' ? 'mongodb://127.0.0.1:27017/nexora' : null);
+  
+  if (!uri) {
+    const errorMsg = 'MONGO_URI is not set in environment variables. Please configure MONGO_URI in your Render Dashboard -> Environment.';
+    console.error(`[MongoDB] Configuration Error: ${errorMsg}`);
+    throw new Error(errorMsg);
+  }
+
   try {
-    const uri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/nexora';
     mongoose.set('strictQuery', false);
     cachedConn = await mongoose.connect(uri);
-    console.log(`[MongoDB] Connected successfully to Atlas: ${cachedConn.connection.host}/${cachedConn.connection.name}`);
+    console.log(`[MongoDB] Connected successfully: ${cachedConn.connection.host}/${cachedConn.connection.name}`);
     return cachedConn;
   } catch (err) {
     console.error(`[MongoDB] Connection error:`, err.message);

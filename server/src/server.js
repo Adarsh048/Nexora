@@ -26,26 +26,36 @@ app.get('*', (req, res, next) => {
   });
 });
 
-// Connect to DB and Start Server
+// Start Server and bind port immediately for cloud health checks
 async function startServer() {
-  await connectDB();
-  await initQueues();
-
-  // Register background job processors
-  registerJobProcessor('sync-gmail', async (data) => {
-    if (data && data.userId) {
-      console.log(`[Queue] Processing background email sync for user ${data.userId}`);
-      return await syncUserEmails(data.userId);
-    }
-  });
-
-  const server = app.listen(PORT, () => {
+  const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`====================================================`);
     console.log(`   NEXORA INTELLIGENCE PLATFORM BACKEND ACTIVE     `);
     console.log(`   Port: ${PORT} | Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`   Ready for requests at http://localhost:${PORT}`);
+    console.log(`   Ready for requests at http://0.0.0.0:${PORT}`);
     console.log(`====================================================`);
   });
+
+  // Connect to Database
+  try {
+    await connectDB();
+  } catch (err) {
+    console.error(`[MongoDB] Initial connection error: ${err.message}`);
+    console.error(`[MongoDB] To fix: Add MONGO_URI in your Render Dashboard -> Environment.`);
+  }
+
+  // Initialize Queues
+  try {
+    await initQueues();
+    registerJobProcessor('sync-gmail', async (data) => {
+      if (data && data.userId) {
+        console.log(`[Queue] Processing background email sync for user ${data.userId}`);
+        return await syncUserEmails(data.userId);
+      }
+    });
+  } catch (err) {
+    console.warn(`[Queue] Queue initialization notice: ${err.message}`);
+  }
 
   // Graceful shutdown handling
   const shutdown = async (signal) => {
