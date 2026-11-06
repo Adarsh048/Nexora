@@ -375,7 +375,7 @@ export const AuthPage = () => {
                     onFocus={() => setFocusedField('email')}
                     onBlur={() => setFocusedField(null)}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="name@company.com"
+                    placeholder="e.g. name@company.com"
                     className="w-full pl-9 sm:pl-10 pr-3 sm:pr-3.5 py-2 sm:py-3.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-400/50 placeholder:font-normal placeholder:transition-opacity focus:placeholder:opacity-35 focus:outline-none bg-transparent"
                   />
                 </div>
@@ -414,7 +414,7 @@ export const AuthPage = () => {
                     onFocus={() => setFocusedField('password')}
                     onBlur={() => setFocusedField(null)}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder={isRegister ? "Create a secure password" : "Enter your password"}
+                    placeholder="e.g. ••••••••••••"
                     className="w-full pl-9 sm:pl-10 pr-9 sm:pr-11 py-2 sm:py-3.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-400/50 placeholder:font-normal placeholder:transition-opacity focus:placeholder:opacity-35 focus:outline-none bg-transparent"
                   />
                   <button
