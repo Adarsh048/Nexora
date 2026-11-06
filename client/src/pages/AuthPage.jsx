@@ -308,11 +308,12 @@ export const AuthPage = () => {
                         type="text"
                         required
                         value={name}
+                        autoComplete="name"
                         onFocus={() => setFocusedField('name')}
                         onBlur={() => setFocusedField(null)}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="e.g. Adarsh Sharma"
-                        className="w-full pl-9 sm:pl-10 pr-3 sm:pr-3.5 py-2 sm:py-3.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-400/50 placeholder:font-normal placeholder:transition-opacity focus:placeholder:opacity-35 focus:outline-none bg-transparent"
+                        className="w-full pl-9 sm:pl-10 pr-3 sm:pr-3.5 py-2 sm:py-3.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-400/50 placeholder:font-normal placeholder:transition-opacity focus:placeholder:opacity-35 focus:outline-none bg-transparent auth-input"
                       />
                     </div>
                   </div>
@@ -337,11 +338,12 @@ export const AuthPage = () => {
                       <input
                         type="text"
                         value={targetRole}
+                        autoComplete="organization-title"
                         onFocus={() => setFocusedField('role')}
                         onBlur={() => setFocusedField(null)}
                         onChange={(e) => setTargetRole(e.target.value)}
                         placeholder="e.g. Senior Software Engineer"
-                        className="w-full pl-9 sm:pl-10 pr-3 sm:pr-3.5 py-2 sm:py-3.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-400/50 placeholder:font-normal placeholder:transition-opacity focus:placeholder:opacity-35 focus:outline-none bg-transparent"
+                        className="w-full pl-9 sm:pl-10 pr-3 sm:pr-3.5 py-2 sm:py-3.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-400/50 placeholder:font-normal placeholder:transition-opacity focus:placeholder:opacity-35 focus:outline-none bg-transparent auth-input"
                       />
                     </div>
                   </div>
@@ -372,11 +374,12 @@ export const AuthPage = () => {
                     type="email"
                     required
                     value={email}
+                    autoComplete="email"
                     onFocus={() => setFocusedField('email')}
                     onBlur={() => setFocusedField(null)}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="e.g. name@company.com"
-                    className="w-full pl-9 sm:pl-10 pr-3 sm:pr-3.5 py-2 sm:py-3.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-400/50 placeholder:font-normal placeholder:transition-opacity focus:placeholder:opacity-35 focus:outline-none bg-transparent"
+                    className="w-full pl-9 sm:pl-10 pr-3 sm:pr-3.5 py-2 sm:py-3.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-400/50 placeholder:font-normal placeholder:transition-opacity focus:placeholder:opacity-35 focus:outline-none bg-transparent auth-input"
                   />
                 </div>
               </div>
@@ -411,11 +414,12 @@ export const AuthPage = () => {
                     type={showPassword ? 'text' : 'password'}
                     required
                     value={password}
+                    autoComplete={isRegister ? "new-password" : "current-password"}
                     onFocus={() => setFocusedField('password')}
                     onBlur={() => setFocusedField(null)}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="e.g. ••••••••••••"
-                    className="w-full pl-9 sm:pl-10 pr-9 sm:pr-11 py-2 sm:py-3.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-400/50 placeholder:font-normal placeholder:transition-opacity focus:placeholder:opacity-35 focus:outline-none bg-transparent"
+                    className="w-full pl-9 sm:pl-10 pr-9 sm:pr-11 py-2 sm:py-3.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm text-white font-semibold placeholder:text-slate-400/50 placeholder:font-normal placeholder:transition-opacity focus:placeholder:opacity-35 focus:outline-none bg-transparent auth-input"
                   />
                   <button
                     type="button"

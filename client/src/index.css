@@ -75,3 +75,22 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #B9ADEE;
 }
+
+/* Dark Theme Browser Autofill Override (Fixes white background on Chrome/Edge/Safari autofilled inputs) */
+.auth-input:-webkit-autofill,
+.auth-input:-webkit-autofill:hover,
+.auth-input:-webkit-autofill:focus,
+.auth-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #161229 inset !important;
+  box-shadow: 0 0 0 1000px #161229 inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color: #ffffff !important;
+  border-radius: inherit !important;
+  transition: background-color 50000s ease-in-out 0s;
+}
+
+.auth-input:focus:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #211b38 inset !important;
+  box-shadow: 0 0 0 1000px #211b38 inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
