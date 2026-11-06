@@ -11,12 +11,10 @@ import {
   EyeOff,
   Sparkles,
   CheckCircle2,
-  Zap,
   TrendingUp,
   Layers,
   Award,
   Briefcase,
-  Check,
   Shield,
   KeyRound,
 } from 'lucide-react';
@@ -31,7 +29,6 @@ export const AuthPage = () => {
   const [focusedField, setFocusedField] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [demoFilled, setDemoFilled] = useState(false);
 
   const { login, register } = useAuth();
   const navigate = useNavigate();
@@ -65,15 +62,6 @@ export const AuthPage = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleQuickFillDemo = () => {
-    setIsRegister(false);
-    setEmail('test@gmail.com');
-    setPassword('Password123!');
-    setError(null);
-    setDemoFilled(true);
-    setTimeout(() => setDemoFilled(false), 2500);
   };
 
   return (
@@ -495,29 +483,6 @@ export const AuthPage = () => {
                 )}
               </button>
             </form>
-
-            {/* 1-Tap Quick Demo Candidate Autofill Action */}
-            {!isRegister && (
-              <div className="pt-0.5 sm:pt-1">
-                <button
-                  type="button"
-                  onClick={handleQuickFillDemo}
-                  className="w-full py-2 sm:py-3 px-3 sm:px-3.5 rounded-xl sm:rounded-2xl bg-white/[0.06] hover:bg-white/[0.1] border border-violet-400/30 text-violet-300 hover:text-white text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center space-x-1.5 sm:space-x-2 cursor-pointer shadow-sm active:scale-[0.99]"
-                >
-                  {demoFilled ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 stroke-[2.5]" />
-                      <span className="text-emerald-300 font-bold">Demo Account Filled! Ready to sign in</span>
-                    </>
-                  ) : (
-                    <>
-                      <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#A78BFA] fill-[#A78BFA]" />
-                      <span>1-Tap Demo Account (Quick Fill)</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            )}
 
             {/* Security badge footer */}
             <div className="pt-2 sm:pt-3 border-t border-white/[0.08] flex items-center justify-center space-x-1.5 text-[10px] sm:text-[11px] text-slate-400">
