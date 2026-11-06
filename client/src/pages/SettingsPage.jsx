@@ -70,6 +70,18 @@ export const SettingsPage = () => {
     }
   };
 
+  const handleConnectDemo = async () => {
+    setSyncing(true);
+    try {
+      await gmailApi.connectDemo(user?.email || 'applicant@gmail.com');
+      await fetchGmailStatus();
+    } catch (err) {
+      alert(err.message || 'Failed to connect test Gmail');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const handleDisconnectGmail = async () => {
     if (!window.confirm('Disconnect Gmail? Existing processed updates and timelines will remain preserved.')) return;
     try {
@@ -287,6 +299,11 @@ export const SettingsPage = () => {
                       <div>
                         <span className="text-slate-400">Account: </span>
                         <strong className="text-slate-800">{gmailStatus.emailAddress}</strong>
+                        {gmailStatus.isDemo && (
+                          <span className="ml-2 text-[10px] bg-violet-100 text-[#7652E8] px-2 py-0.5 rounded-full font-bold">
+                            Test Simulation Active
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center space-x-2">
                         <button
@@ -295,7 +312,7 @@ export const SettingsPage = () => {
                           className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white border border-violet-200 text-xs font-bold text-[#7652E8] hover:bg-violet-50 transition-colors cursor-pointer"
                         >
                           <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
-                          <span>Sync Now</span>
+                          <span>{syncing ? 'Scanning...' : 'Sync Now'}</span>
                         </button>
                         <button
                           onClick={handleDisconnectGmail}
@@ -308,13 +325,26 @@ export const SettingsPage = () => {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <button
-                      onClick={handleConnectGmail}
-                      className="flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-[#7652E8] hover:bg-[#6844dd] text-white text-xs font-bold shadow-md shadow-[#7652E8]/25 transition-all cursor-pointer"
-                    >
-                      <Mail className="w-4 h-4" />
-                      <span>Connect Gmail Account</span>
-                    </button>
+                    <div className="flex flex-wrap items-center gap-3">
+                      {gmailStatus?.isConfigured ? (
+                        <button
+                          onClick={handleConnectGmail}
+                          className="flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-[#7652E8] hover:bg-[#6844dd] text-white text-xs font-bold shadow-md shadow-[#7652E8]/25 transition-all cursor-pointer"
+                        >
+                          <Mail className="w-4 h-4" />
+                          <span>Connect Google Account</span>
+                        </button>
+                      ) : null}
+
+                      <button
+                        onClick={handleConnectDemo}
+                        disabled={syncing}
+                        className="flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-[#7652E8] hover:opacity-95 text-white text-xs font-bold shadow-md shadow-[#7652E8]/25 transition-all cursor-pointer disabled:opacity-50"
+                      >
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>{syncing ? 'Connecting...' : 'Connect Test Mode (Instant 1-Click)'}</span>
+                      </button>
+                    </div>
 
                     {!gmailStatus?.isConfigured && (
                       <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200/70 text-xs text-amber-800 space-y-2">
@@ -323,7 +353,7 @@ export const SettingsPage = () => {
                           <span>External Google OAuth Credentials Notice</span>
                         </div>
                         <p className="leading-relaxed">
-                          To enable live Google OAuth sign-in with your personal Gmail in local development:
+                          Test mode above works instantly without any API keys. If you wish to connect your personal live Google account:
                         </p>
                         <ol className="list-decimal list-inside space-y-1 text-[11px] text-amber-900 font-medium">
                           <li>Create a project in the Google Cloud Console</li>

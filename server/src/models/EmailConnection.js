@@ -16,6 +16,10 @@ const emailConnectionSchema = new mongoose.Schema({
     type: String,
     default: 'gmail',
   },
+  isDemo: {
+    type: Boolean,
+    default: false,
+  },
   connected: {
     type: Boolean,
     default: true,

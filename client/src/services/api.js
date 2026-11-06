@@ -108,6 +108,11 @@ export const gmailApi = {
     request('/gmail/sync', {
       method: 'POST',
     }),
+  connectDemo: (emailAddress) =>
+    request('/gmail/demo-connect', {
+      method: 'POST',
+      body: JSON.stringify({ emailAddress }),
+    }),
   disconnect: () =>
     request('/gmail/disconnect', {
       method: 'POST',
@@ -120,6 +125,15 @@ export const inboxApi = {
     const qs = new URLSearchParams(params).toString();
     return request(`/inbox?${qs}`);
   },
+  simulate: (payload = {}) =>
+    request('/inbox/simulate', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  clearAll: () =>
+    request('/inbox/clear', {
+      method: 'POST',
+    }),
   approve: (emailId, payload = {}) =>
     request(`/inbox/approve/${emailId}`, {
       method: 'POST',

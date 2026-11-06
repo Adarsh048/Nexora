@@ -5,6 +5,12 @@ import {
   CheckCircle2,
   Check,
   Info,
+  Sparkles,
+  Plus,
+  AlertCircle,
+  X,
+  ChevronRight,
+  ShieldCheck,
 } from 'lucide-react';
 import { inboxApi, gmailApi, applicationApi } from '../services/api.js';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -16,13 +22,20 @@ export const InboxIntelligencePage = () => {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState(null);
+  const [showSimulateModal, setShowSimulateModal] = useState(false);
+  const [simulating, setSimulating] = useState(false);
+
+  // Simulation form
+  const [simScenario, setSimScenario] = useState('interview');
+  const [simCompany, setSimCompany] = useState('');
+  const [simRole, setSimRole] = useState('');
 
   // Filters
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [reviewStatusFilter, setReviewStatusFilter] = useState('pending');
 
   // Selected email for manual application match assignment
-  const [selectedMatch, setSelectedMatch] = useState(null);
+  const [selectedMatch, setSelectedMatch] = useState({});
 
   const fetchData = async () => {
     setLoading(true);
@@ -45,6 +58,10 @@ export const InboxIntelligencePage = () => {
       }
       if (appRes.success && appRes.data) {
         setApplications(appRes.data);
+        if (appRes.data.length > 0 && !simCompany) {
+          setSimCompany(appRes.data[0].companyName);
+          setSimRole(appRes.data[0].jobTitle);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -71,12 +88,49 @@ export const InboxIntelligencePage = () => {
     }
   };
 
+  const handleConnectTest = async () => {
+    setSyncing(true);
+    try {
+      await gmailApi.connectDemo();
+      setSyncMessage('Connected in test intelligence mode! Initial scan completed.');
+      fetchData();
+    } catch (err) {
+      setSyncMessage(err.message || 'Failed to connect test mode.');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const handleSimulateEmail = async (typeOverride) => {
+    setSimulating(true);
+    try {
+      const type = typeOverride || simScenario;
+      const res = await inboxApi.simulate({
+        type,
+        companyName: simCompany || undefined,
+        jobTitle: simRole || undefined,
+      });
+
+      setShowSimulateModal(false);
+      setSyncMessage(res.message || 'Recruiter email simulated and classified!');
+      fetchData();
+    } catch (err) {
+      alert(err.message || 'Failed to simulate recruiter email.');
+    } finally {
+      setSimulating(false);
+    }
+  };
+
   const handleApprove = async (email) => {
     try {
       const targetAppId =
-        selectedMatch && selectedMatch.emailId === email._id
-          ? selectedMatch.appId
-          : email.matchedApplicationId?._id;
+        selectedMatch[email._id] ||
+        (email.matchedApplicationId?._id || email.matchedApplicationId);
+
+      if (!targetAppId) {
+        alert('Please select an application to apply this status update to.');
+        return;
+      }
 
       await inboxApi.approve(email._id, {
         targetApplicationId: targetAppId,
@@ -92,6 +146,16 @@ export const InboxIntelligencePage = () => {
   const handleDismiss = async (emailId) => {
     try {
       await inboxApi.dismiss(emailId);
+      fetchData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleClearInbox = async () => {
+    if (!window.confirm('Clear all processed emails from your inbox intelligence feed?')) return;
+    try {
+      await inboxApi.clearAll();
       fetchData();
     } catch (err) {
       console.error(err);
@@ -129,15 +193,23 @@ export const InboxIntelligencePage = () => {
           </p>
         </div>
 
-        {/* Sync Controls */}
-        <div className="flex items-center space-x-3">
+        {/* Action Controls */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            onClick={() => setShowSimulateModal(true)}
+            className="flex items-center space-x-1.5 px-3.5 py-2.5 rounded-2xl bg-violet-50 text-[#7652E8] hover:bg-violet-100 border border-violet-100 text-xs font-bold transition-all cursor-pointer shadow-xs"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Simulate Test Email</span>
+          </button>
+
           <button
             onClick={handleSyncNow}
             disabled={syncing || !gmailStatus?.connected}
             className="flex items-center space-x-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-[#7652E8] to-[#9B7AFB] text-white text-xs font-bold shadow-md shadow-[#7652E8]/25 hover:opacity-95 transition-all cursor-pointer disabled:opacity-50"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
-            <span>{syncing ? 'Scanning Gmail...' : 'Sync Now'}</span>
+            <span>{syncing ? 'Scanning Inbox...' : 'Sync Now'}</span>
           </button>
         </div>
       </div>
@@ -159,7 +231,7 @@ export const InboxIntelligencePage = () => {
               </h3>
               {gmailStatus?.connected ? (
                 <span className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 font-bold border border-emerald-100 flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3" /> Active
+                  <CheckCircle2 className="w-3 h-3" /> {gmailStatus.isDemo ? 'Test Mode Active' : 'Live Gmail Active'}
                 </span>
               ) : (
                 <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 font-bold border border-amber-100">
@@ -173,26 +245,40 @@ export const InboxIntelligencePage = () => {
                     gmailStatus.lastSyncedAt
                       ? formatDistanceToNow(new Date(gmailStatus.lastSyncedAt), { addSuffix: true })
                       : 'Just now'
-                  }. Background processing checks for new responses automatically.`
-                : 'Connect read-only Gmail access in Settings to monitor recruitment updates, tests, and interview links.'}
+                  }. Background processing checks for recruitment updates automatically.`
+                : 'Connect Gmail to automatically parse recruiter emails, interview requests, and offers into verified timeline events.'}
             </p>
           </div>
         </div>
 
-        {!gmailStatus?.connected && (
-          <a
-            href="/settings?tab=integrations"
-            className="px-4 py-2 rounded-xl bg-violet-50 text-[#7652E8] text-xs font-bold hover:bg-violet-100 transition-colors shrink-0"
-          >
-            Configure Integration
-          </a>
-        )}
+        {!gmailStatus?.connected ? (
+          <div className="flex items-center space-x-2 shrink-0">
+            <button
+              onClick={handleConnectTest}
+              disabled={syncing}
+              className="px-3.5 py-2 rounded-xl bg-[#7652E8] hover:bg-[#6844dd] text-white text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+            >
+              Connect Test Mode (1-Click)
+            </button>
+            <a
+              href="/settings?tab=integrations"
+              className="px-3.5 py-2 rounded-xl bg-violet-50 text-[#7652E8] text-xs font-bold hover:bg-violet-100 transition-colors"
+            >
+              Settings
+            </a>
+          </div>
+        ) : null}
       </div>
 
       {syncMessage && (
-        <div className="p-3.5 rounded-2xl bg-violet-50 border border-violet-100 text-xs text-violet-800 flex items-center space-x-2">
-          <Info className="w-4 h-4 text-[#7652E8] shrink-0" />
-          <span>{syncMessage}</span>
+        <div className="p-3.5 rounded-2xl bg-violet-50 border border-violet-100 text-xs text-violet-800 flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Info className="w-4 h-4 text-[#7652E8] shrink-0" />
+            <span>{syncMessage}</span>
+          </div>
+          <button onClick={() => setSyncMessage(null)} className="text-violet-400 hover:text-violet-700">
+            <X className="w-3.5 h-3.5" />
+          </button>
         </div>
       )}
 
@@ -214,19 +300,130 @@ export const InboxIntelligencePage = () => {
           ))}
         </div>
 
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          className="px-3 py-2 rounded-xl border border-violet-100 bg-white text-xs font-semibold text-slate-700 shadow-xs focus:outline-none"
-        >
-          <option value="All">All Categories</option>
-          <option value="Interview">Interview Invitations</option>
-          <option value="Assessment">Assessments</option>
-          <option value="Offer">Offers</option>
-          <option value="Rejection">Rejections</option>
-          <option value="Confirmation">Application Received</option>
-        </select>
+        <div className="flex items-center space-x-2">
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="px-3 py-2 rounded-xl border border-violet-100 bg-white text-xs font-semibold text-slate-700 shadow-xs focus:outline-none"
+          >
+            <option value="All">All Categories</option>
+            <option value="Interview">Interview Invitations</option>
+            <option value="Assessment">Assessments</option>
+            <option value="Offer">Offers</option>
+            <option value="Rejection">Rejections</option>
+            <option value="Confirmation">Application Received</option>
+          </select>
+
+          {emails.length > 0 && (
+            <button
+              onClick={handleClearInbox}
+              className="text-xs text-slate-400 hover:text-rose-500 font-semibold px-2 py-1 transition-colors cursor-pointer"
+              title="Clear inbox list"
+            >
+              Clear
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Simulation Modal */}
+      {showSimulateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-violet-100 space-y-4 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-violet-50 pb-3">
+              <div className="flex items-center space-x-2">
+                <div className="p-2 rounded-xl bg-violet-100 text-[#7652E8]">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-800">Simulate Inbound Recruiter Email</h3>
+                  <p className="text-[11px] text-slate-400">Test Nexora's classification, confidence score, and timeline updates</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowSimulateModal(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Quick Preset Buttons */}
+            <div>
+              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
+                Choose a Realistic Preset:
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {[
+                  { id: 'interview', label: 'Technical Interview', comp: 'Google', role: 'Software Engineer', badge: 'bg-violet-100 text-[#7652E8]' },
+                  { id: 'offer', label: 'Official Job Offer', comp: 'Stripe', role: 'Full Stack Engineer', badge: 'bg-emerald-100 text-emerald-700' },
+                  { id: 'assessment', label: 'HackerRank Assessment', comp: 'Amazon', role: 'Backend Developer', badge: 'bg-amber-100 text-amber-700' },
+                  { id: 'rejection', label: 'Application Status Update', comp: 'Meta', role: 'Software Engineer', badge: 'bg-rose-100 text-rose-700' },
+                  { id: 'confirmation', label: 'Application Received', comp: 'Apple', role: 'iOS Engineer', badge: 'bg-sky-100 text-sky-700' },
+                ].map((preset) => (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => {
+                      setSimScenario(preset.id);
+                      setSimCompany(preset.comp);
+                      setSimRole(preset.role);
+                      handleSimulateEmail(preset.id);
+                    }}
+                    disabled={simulating}
+                    className="p-3 rounded-2xl border border-violet-100 hover:border-[#7652E8] hover:bg-violet-50/50 text-left transition-all cursor-pointer group"
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${preset.badge}`}>
+                        {preset.label}
+                      </span>
+                    </div>
+                    <p className="text-xs font-bold text-slate-800">{preset.comp}</p>
+                    <p className="text-[11px] text-slate-400">{preset.role}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Target Application Customizer */}
+            {applications.length > 0 && (
+              <div className="pt-2 border-t border-violet-50">
+                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                  Or Test Against an Existing Application:
+                </label>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={simCompany}
+                    onChange={(e) => {
+                      const app = applications.find(a => a.companyName === e.target.value);
+                      if (app) {
+                        setSimCompany(app.companyName);
+                        setSimRole(app.jobTitle);
+                      }
+                    }}
+                    className="flex-1 px-3 py-2 rounded-xl border border-violet-100 bg-[#FAF9FE] text-xs font-semibold text-slate-700 focus:outline-none"
+                  >
+                    {applications.map((app) => (
+                      <option key={app._id} value={app.companyName}>
+                        {app.companyName} — {app.jobTitle}
+                      </option>
+                    ))}
+                  </select>
+
+                  <button
+                    type="button"
+                    onClick={() => handleSimulateEmail('interview')}
+                    disabled={simulating}
+                    className="px-4 py-2 rounded-xl bg-[#7652E8] text-white text-xs font-bold hover:bg-[#6844dd] transition-all cursor-pointer disabled:opacity-50 shrink-0"
+                  >
+                    {simulating ? 'Injecting...' : 'Send Interview Invite'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Processed Emails List */}
       {loading ? (
@@ -235,17 +432,34 @@ export const InboxIntelligencePage = () => {
           <div className="h-28 bg-white rounded-3xl" />
         </div>
       ) : emails.length === 0 ? (
-        <div className="bg-white rounded-3xl p-12 text-center border border-violet-100/60 shadow-xs">
-          <p className="text-sm font-bold text-slate-800">No recruitment emails in this view</p>
-          <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+        <div className="bg-white rounded-3xl p-12 text-center border border-violet-100/60 shadow-xs space-y-3">
+          <div className="w-12 h-12 rounded-2xl bg-violet-50 text-[#7652E8] flex items-center justify-center mx-auto">
+            <Mail className="w-6 h-6" />
+          </div>
+          <h3 className="text-sm font-bold text-slate-800">No recruitment emails in this view</h3>
+          <p className="text-xs text-slate-400 max-w-sm mx-auto">
             Nexora scans your linked inbox for job confirmations, assessments, and interview bookings.
           </p>
+          <div className="pt-2">
+            <button
+              onClick={() => setShowSimulateModal(true)}
+              className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-violet-100 text-[#7652E8] hover:bg-violet-200 text-xs font-bold transition-all cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Simulate a Test Recruiter Email</span>
+            </button>
+          </div>
         </div>
       ) : (
         <div className="space-y-4">
           {emails.map((email) => {
             const isPending = email.reviewStatus === 'pending';
-            const confidencePercent = Math.round((email.confidenceScore || 0.8) * 100);
+            const category = email.detectedCategory || email.category || 'Other';
+            const confidencePercent = email.matchConfidence || Math.round((email.confidenceScore || 0.85) * 100);
+            const receivedDate = email.receivedAt || email.receivedDate;
+            const sender = email.senderName
+              ? `${email.senderName} <${email.senderEmail}>`
+              : email.senderEmail || email.sender || 'Recruiting Team';
 
             return (
               <div
@@ -255,23 +469,33 @@ export const InboxIntelligencePage = () => {
                 <div>
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
                     <div className="flex items-center space-x-2.5">
-                      <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${getCategoryBadge(email.category)}`}>
-                        {email.category}
+                      <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${getCategoryBadge(category)}`}>
+                        {category}
                       </span>
                       <span className="text-[11px] font-semibold text-slate-400">
-                        {confidencePercent}% confidence
+                        {confidencePercent}% match confidence
                       </span>
+                      {email.reviewStatus === 'approved' && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center gap-1">
+                          <Check className="w-3 h-3" /> Approved & Applied
+                        </span>
+                      )}
+                      {email.reviewStatus === 'dismissed' && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
+                          Dismissed
+                        </span>
+                      )}
                     </div>
 
                     <span className="text-[11px] text-slate-400">
-                      {email.receivedDate ? format(new Date(email.receivedDate), 'MMM d, yyyy h:mm a') : ''}
+                      {receivedDate ? format(new Date(receivedDate), 'MMM d, yyyy h:mm a') : 'Just now'}
                     </span>
                   </div>
 
                   <h3 className="text-sm font-bold text-slate-800">{email.subject}</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">From: {email.sender}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">From: {sender}</p>
 
-                  <div className="mt-3 p-3.5 rounded-2xl bg-[#FAF9FE] border border-violet-100/40 text-xs text-slate-600 leading-relaxed font-mono whitespace-pre-wrap">
+                  <div className="mt-3 p-3.5 rounded-2xl bg-[#FAF9FE] border border-violet-100/40 text-xs text-slate-600 leading-relaxed font-sans whitespace-pre-wrap">
                     {email.snippet}
                   </div>
                 </div>
@@ -281,15 +505,15 @@ export const InboxIntelligencePage = () => {
                   <div className="flex items-center space-x-2 text-xs">
                     <span className="text-slate-400 font-medium">Matched Application:</span>
                     {email.matchedApplicationId ? (
-                      <span className="font-bold text-[#7652E8] bg-violet-50 px-2 py-0.5 rounded-lg border border-violet-100">
+                      <span className="font-bold text-[#7652E8] bg-violet-50 px-2.5 py-1 rounded-lg border border-violet-100">
                         {email.matchedApplicationId.companyName} — {email.matchedApplicationId.jobTitle}
                       </span>
                     ) : (
                       <select
                         onChange={(e) =>
-                          setSelectedMatch({ emailId: email._id, appId: e.target.value })
+                          setSelectedMatch((prev) => ({ ...prev, [email._id]: e.target.value }))
                         }
-                        className="px-2 py-1 rounded-lg border border-violet-100 bg-[#FAF9FE] text-xs font-semibold text-slate-700"
+                        className="px-2.5 py-1.5 rounded-lg border border-violet-100 bg-[#FAF9FE] text-xs font-semibold text-slate-700 focus:outline-none"
                       >
                         <option value="">Select matching job...</option>
                         {applications.map((app) => (
