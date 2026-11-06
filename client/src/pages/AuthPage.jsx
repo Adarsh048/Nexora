@@ -119,29 +119,34 @@ export const AuthPage = () => {
             </p>
           </div>
 
-          {/* Interactive Showcase Card: Detected Recruiter Email */}
+          {/* Platform Capability Showcase Card */}
           <div className="p-5 rounded-3xl bg-white/[0.04] border border-white/[0.08] backdrop-blur-md shadow-2xl space-y-3.5 hover:border-violet-500/30 transition-all duration-300">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-xs font-bold text-white">Inbox Intelligence Detection</span>
+                <span className="text-xs font-bold text-white">Automated Recruitment Pipeline</span>
               </div>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/30">
-                94% Match Confidence
+                Live Synchronization
               </span>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.05] space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-slate-200">Google Careers</span>
-                <span className="text-[10px] text-slate-400">Just now</span>
+            <div className="grid grid-cols-3 gap-2 py-1">
+              <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.05] text-center">
+                <div className="text-[10px] text-slate-400 font-medium">Stage 1</div>
+                <div className="text-xs font-bold text-white mt-0.5">Applied</div>
+                <div className="text-[9px] text-emerald-400 mt-1">Confirmed</div>
               </div>
-              <p className="text-xs font-semibold text-violet-300">
-                Invitation to Technical Interview: Senior Software Engineer
-              </p>
-              <p className="text-[11px] text-slate-400 leading-relaxed font-mono">
-                "Hi there, We reviewed your application and would like to invite you to interview with our engineering team..."
-              </p>
+              <div className="p-2.5 rounded-xl bg-violet-500/10 border border-violet-500/20 text-center">
+                <div className="text-[10px] text-violet-300 font-medium">Stage 2</div>
+                <div className="text-xs font-bold text-violet-200 mt-0.5">Interview</div>
+                <div className="text-[9px] text-violet-300 mt-1">Scheduled</div>
+              </div>
+              <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.05] text-center">
+                <div className="text-[10px] text-slate-400 font-medium">Stage 3</div>
+                <div className="text-xs font-bold text-white mt-0.5">Offer</div>
+                <div className="text-[9px] text-cyan-400 mt-1">Reviewing</div>
+              </div>
             </div>
 
             <div className="flex items-center justify-between pt-1 text-[11px] text-slate-400">
@@ -218,15 +223,6 @@ export const AuthPage = () => {
               <p className="text-[11px] sm:text-xs text-slate-300/80 mt-0.5 sm:mt-1 font-medium">
                 "Every application. Every update. One place."
               </p>
-            </div>
-
-            {/* Floating Live Recruiter Intelligence Pill */}
-            <div className="inline-flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-white/[0.06] border border-white/[0.12] backdrop-blur-md shadow-lg text-[10px] sm:text-[11px] text-slate-200">
-              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 animate-ping shrink-0" />
-              <span className="font-semibold truncate">Google Interview Invite detected</span>
-              <span className="text-[9px] sm:text-[10px] font-bold text-[#C4B5FD] bg-violet-950/90 px-1.5 py-0.5 rounded-md">
-                94% Match
-              </span>
             </div>
           </div>
 
