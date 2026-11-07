@@ -198,11 +198,11 @@ export const AuthPage = () => {
       </div>
 
       {/* RIGHT COLUMN: REFINED STANDARD ENTERPRISE AUTH FORM */}
-      <div className="flex-1 flex flex-col justify-center items-center px-4 py-6 sm:p-8 lg:p-12 relative z-10 min-h-screen w-full">
-        <div className="w-full max-w-[340px] xs:max-w-[370px] sm:max-w-[400px] space-y-4 sm:space-y-5">
+      <div className="flex-1 flex flex-col justify-center items-center px-4 py-8 sm:p-8 lg:p-12 relative z-10 min-h-[100dvh] w-full">
+        <div className="w-full max-w-[340px] xs:max-w-[360px] sm:max-w-[400px] space-y-4 sm:space-y-5 mx-auto">
 
-          {/* CLEAN STANDARD BRAND HERO (< lg screens) */}
-          <div className="lg:hidden text-center space-y-2 pt-1">
+          {/* CLEAN BALANCED BRAND HERO (< lg screens) */}
+          <div className="lg:hidden flex flex-col items-center text-center space-y-2 pt-1">
             <div className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-tr from-[#6D28D9] via-[#7C3AED] to-[#A78BFA] p-0.5 shadow-md shadow-violet-900/40">
               <div className="w-full h-full rounded-[10px] bg-[#0E0C1F] flex items-center justify-center">
                 <svg className="w-5 h-5 text-[#A78BFA]" viewBox="0 0 24 24" fill="currentColor">
@@ -226,13 +226,14 @@ export const AuthPage = () => {
             </div>
           </div>
 
-          {/* STANDARD AUTH SECTION */}
+          {/* AUTHENTICATION FORM SECTION */}
           <div className="w-full space-y-3.5 sm:space-y-4.5 transition-all">
             {/* Header Title & Segment Switcher */}
-            <div className="space-y-2.5 sm:space-y-3">
-              <div>
-                <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight flex items-center gap-1.5">
-                  <span>{isRegister ? 'Create Your Account' : 'Welcome Back'}</span>
+            <div className="space-y-3">
+              {/* Harmoniously aligned heading (centered on mobile, left-aligned on desktop) */}
+              <div className="text-center lg:text-left">
+                <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight">
+                  {isRegister ? 'Create Your Account' : 'Welcome Back'}
                 </h2>
                 <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5 font-normal">
                   {isRegister
@@ -283,23 +284,23 @@ export const AuthPage = () => {
             )}
 
             {/* Form Fields */}
-            <form onSubmit={handleSubmit} className="space-y-2.5 sm:space-y-3.5">
+            <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-3.5">
               {isRegister && (
                 <>
                   {/* Full Name Input */}
                   <div>
-                    <label className="block text-[10px] sm:text-xs font-medium text-slate-300 uppercase tracking-wider mb-1">
+                    <label className="block text-[11px] font-semibold text-slate-300 mb-1">
                       Full Name
                     </label>
                     <div
-                      className={`relative rounded-xl border transition-all duration-150 ${
+                      className={`relative rounded-xl border transition-all duration-150 h-10 sm:h-11 flex items-center ${
                         focusedField === 'name'
                           ? 'border-violet-500/80 bg-white/[0.07] ring-2 ring-violet-500/25'
                           : 'border-white/[0.1] bg-white/[0.04] hover:border-white/[0.18] hover:bg-white/[0.06]'
                       }`}
                     >
                       <UserIcon
-                        className={`w-3.5 h-3.5 sm:w-4 sm:h-4 absolute left-3 sm:left-3.5 top-2.5 sm:top-3 transition-colors ${
+                        className={`w-4 h-4 absolute left-3 sm:left-3.5 transition-colors pointer-events-none ${
                           focusedField === 'name' ? 'text-violet-400' : 'text-slate-400'
                         }`}
                       />
@@ -312,25 +313,25 @@ export const AuthPage = () => {
                         onBlur={() => setFocusedField(null)}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="e.g. Adarsh Sharma"
-                        className="w-full pl-9 sm:pl-10 pr-3 sm:pr-3.5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm text-white font-medium placeholder:text-slate-500 placeholder:font-normal focus:outline-none bg-transparent auth-input"
+                        className="w-full h-full pl-9 sm:pl-10 pr-3 sm:pr-3.5 rounded-xl text-xs sm:text-sm text-white font-medium placeholder:text-slate-500 placeholder:font-normal focus:outline-none bg-transparent auth-input"
                       />
                     </div>
                   </div>
 
                   {/* Target Job Role Input */}
                   <div>
-                    <label className="block text-[10px] sm:text-xs font-medium text-slate-300 uppercase tracking-wider mb-1">
+                    <label className="block text-[11px] font-semibold text-slate-300 mb-1">
                       Target Job Role
                     </label>
                     <div
-                      className={`relative rounded-xl border transition-all duration-150 ${
+                      className={`relative rounded-xl border transition-all duration-150 h-10 sm:h-11 flex items-center ${
                         focusedField === 'role'
                           ? 'border-violet-500/80 bg-white/[0.07] ring-2 ring-violet-500/25'
                           : 'border-white/[0.1] bg-white/[0.04] hover:border-white/[0.18] hover:bg-white/[0.06]'
                       }`}
                     >
                       <Briefcase
-                        className={`w-3.5 h-3.5 sm:w-4 sm:h-4 absolute left-3 sm:left-3.5 top-2.5 sm:top-3 transition-colors ${
+                        className={`w-4 h-4 absolute left-3 sm:left-3.5 transition-colors pointer-events-none ${
                           focusedField === 'role' ? 'text-violet-400' : 'text-slate-400'
                         }`}
                       />
@@ -342,7 +343,7 @@ export const AuthPage = () => {
                         onBlur={() => setFocusedField(null)}
                         onChange={(e) => setTargetRole(e.target.value)}
                         placeholder="e.g. Senior Software Engineer"
-                        className="w-full pl-9 sm:pl-10 pr-3 sm:pr-3.5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm text-white font-medium placeholder:text-slate-500 placeholder:font-normal focus:outline-none bg-transparent auth-input"
+                        className="w-full h-full pl-9 sm:pl-10 pr-3 sm:pr-3.5 rounded-xl text-xs sm:text-sm text-white font-medium placeholder:text-slate-500 placeholder:font-normal focus:outline-none bg-transparent auth-input"
                       />
                     </div>
                   </div>
@@ -352,20 +353,20 @@ export const AuthPage = () => {
               {/* Email Address Input */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="text-[10px] sm:text-xs font-medium text-slate-300 uppercase tracking-wider">
+                  <label className="text-[11px] font-semibold text-slate-300">
                     Email Address
                   </label>
-                  <span className="text-[9px] sm:text-[10px] text-slate-400">Work or Personal</span>
+                  <span className="text-[10px] text-slate-400 font-normal">Work or Personal</span>
                 </div>
                 <div
-                  className={`relative rounded-xl border transition-all duration-150 ${
+                  className={`relative rounded-xl border transition-all duration-150 h-10 sm:h-11 flex items-center ${
                     focusedField === 'email'
                       ? 'border-violet-500/80 bg-white/[0.07] ring-2 ring-violet-500/25'
                       : 'border-white/[0.1] bg-white/[0.04] hover:border-white/[0.18] hover:bg-white/[0.06]'
                   }`}
                 >
                   <Mail
-                    className={`w-3.5 h-3.5 sm:w-4 sm:h-4 absolute left-3 sm:left-3.5 top-2.5 sm:top-3 transition-colors ${
+                    className={`w-4 h-4 absolute left-3 sm:left-3.5 transition-colors pointer-events-none ${
                       focusedField === 'email' ? 'text-violet-400' : 'text-slate-400'
                     }`}
                   />
@@ -378,7 +379,7 @@ export const AuthPage = () => {
                     onBlur={() => setFocusedField(null)}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="e.g. name@company.com"
-                    className="w-full pl-9 sm:pl-10 pr-3 sm:pr-3.5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm text-white font-medium placeholder:text-slate-500 placeholder:font-normal focus:outline-none bg-transparent auth-input"
+                    className="w-full h-full pl-9 sm:pl-10 pr-3 sm:pr-3.5 rounded-xl text-xs sm:text-sm text-white font-medium placeholder:text-slate-500 placeholder:font-normal focus:outline-none bg-transparent auth-input"
                   />
                 </div>
               </div>
@@ -386,26 +387,26 @@ export const AuthPage = () => {
               {/* Password Input */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="text-[10px] sm:text-xs font-medium text-slate-300 uppercase tracking-wider">
+                  <label className="text-[11px] font-semibold text-slate-300">
                     Password
                   </label>
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="text-[11px] sm:text-xs font-semibold text-violet-400 hover:text-white cursor-pointer flex items-center space-x-1"
+                    className="text-[11px] font-semibold text-violet-400 hover:text-white cursor-pointer flex items-center space-x-1"
                   >
                     <span>{showPassword ? 'Hide' : 'Show'}</span>
                   </button>
                 </div>
                 <div
-                  className={`relative rounded-xl border transition-all duration-150 ${
+                  className={`relative rounded-xl border transition-all duration-150 h-10 sm:h-11 flex items-center ${
                     focusedField === 'password'
                       ? 'border-violet-500/80 bg-white/[0.07] ring-2 ring-violet-500/25'
                       : 'border-white/[0.1] bg-white/[0.04] hover:border-white/[0.18] hover:bg-white/[0.06]'
                   }`}
                 >
                   <Lock
-                    className={`w-3.5 h-3.5 sm:w-4 sm:h-4 absolute left-3 sm:left-3.5 top-2.5 sm:top-3 transition-colors ${
+                    className={`w-4 h-4 absolute left-3 sm:left-3.5 transition-colors pointer-events-none ${
                       focusedField === 'password' ? 'text-violet-400' : 'text-slate-400'
                     }`}
                   />
@@ -418,12 +419,12 @@ export const AuthPage = () => {
                     onBlur={() => setFocusedField(null)}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="e.g. ••••••••••••"
-                    className="w-full pl-9 sm:pl-10 pr-9 sm:pr-11 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm text-white font-medium placeholder:text-slate-500 placeholder:font-normal focus:outline-none bg-transparent auth-input"
+                    className="w-full h-full pl-9 sm:pl-10 pr-9 sm:pr-11 rounded-xl text-xs sm:text-sm text-white font-medium placeholder:text-slate-500 placeholder:font-normal focus:outline-none bg-transparent auth-input"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2 sm:right-2.5 top-2 sm:top-2.5 p-1 text-slate-400 hover:text-white cursor-pointer rounded-lg hover:bg-white/[0.08] transition-colors"
+                    className="absolute right-2 sm:right-2.5 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-white cursor-pointer rounded-lg hover:bg-white/[0.08] transition-colors"
                     tabIndex={-1}
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
@@ -467,7 +468,7 @@ export const AuthPage = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 sm:py-3 rounded-xl bg-violet-600 hover:bg-violet-500 active:scale-[0.99] text-white text-xs sm:text-sm font-semibold tracking-wide shadow-md shadow-violet-600/25 transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-60 mt-2 sm:mt-3"
+                className="w-full h-10 sm:h-11 rounded-xl bg-violet-600 hover:bg-violet-500 active:scale-[0.98] text-white text-xs sm:text-sm font-semibold tracking-wide shadow-md shadow-violet-600/25 transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-60 mt-3"
               >
                 {loading ? (
                   <div className="flex items-center space-x-2">
@@ -483,28 +484,19 @@ export const AuthPage = () => {
               </button>
             </form>
 
-            {/* Security badge footer */}
-            <div className="pt-2 sm:pt-3 border-t border-white/[0.06] flex items-center justify-center space-x-1.5 text-[10px] sm:text-[11px] text-slate-400">
-              <ShieldCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-400 shrink-0" />
-              <span>Enterprise AES-256 Encryption • Private Candidate Record</span>
-            </div>
-          </div>
-
-          {/* MOBILE METRICS STRIP (< lg screens) */}
-          <div className="lg:hidden flex items-center justify-around px-2 pt-1 text-[10px] text-slate-400">
-            <div className="flex items-center space-x-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              <span>AES-256 Encrypted</span>
-            </div>
-            <span className="text-white/20">•</span>
-            <div className="flex items-center space-x-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-violet-400" />
-              <span>&lt; 50ms Queries</span>
-            </div>
-            <span className="text-white/20">•</span>
-            <div className="flex items-center space-x-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
-              <span>OAuth 2.0</span>
+            {/* Harmonious Unified Trust Footer */}
+            <div className="pt-3 border-t border-white/[0.06] flex flex-col items-center justify-center space-y-1.5 text-center">
+              <div className="inline-flex items-center space-x-1.5 text-[10px] sm:text-[11px] text-slate-400">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span>Enterprise AES-256 Encryption • Private Candidate Record</span>
+              </div>
+              <div className="lg:hidden flex items-center space-x-2.5 text-[9px] text-slate-500 font-medium">
+                <span>&lt; 50ms Queries</span>
+                <span className="text-white/10">•</span>
+                <span>Google OAuth 2.0</span>
+                <span className="text-white/10">•</span>
+                <span>SOC2 Standards</span>
+              </div>
             </div>
           </div>
 
