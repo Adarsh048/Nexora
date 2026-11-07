@@ -3,14 +3,42 @@ import { authApi } from '../services/api.js';
 
 const AuthContext = createContext(undefined);
 
+// Instant 0ms session recovery from localStorage
+const getCachedUser = () => {
+  try {
+    const raw = localStorage.getItem('nexora_user');
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(getCachedUser);
+  // If we already have a cached user, we do not block initial render!
+  const [loading, setLoading] = useState(() => {
+    const token = localStorage.getItem('nexora_token');
+    const cached = getCachedUser();
+    return !!token && !cached;
+  });
+
+  const saveUserSession = (userData, token) => {
+    if (token) localStorage.setItem('nexora_token', token);
+    if (userData) localStorage.setItem('nexora_user', JSON.stringify(userData));
+    setUser(userData);
+  };
+
+  const clearUserSession = () => {
+    localStorage.removeItem('nexora_token');
+    localStorage.removeItem('nexora_user');
+    setUser(null);
+  };
 
   useEffect(() => {
-    async function loadUser() {
+    async function verifySession() {
       const token = localStorage.getItem('nexora_token');
       if (!token) {
+        clearUserSession();
         setLoading(false);
         return;
       }
@@ -18,43 +46,41 @@ export const AuthProvider = ({ children }) => {
       try {
         const res = await authApi.getMe();
         if (res.success && res.user) {
-          setUser(res.user);
+          saveUserSession(res.user);
         } else {
-          localStorage.removeItem('nexora_token');
-          setUser(null);
+          clearUserSession();
         }
       } catch {
-        localStorage.removeItem('nexora_token');
-        setUser(null);
+        // If offline/network fails, keep cached user so the app remains accessible
+        if (!user) {
+          clearUserSession();
+        }
       } finally {
         setLoading(false);
       }
     }
 
-    loadUser();
+    verifySession();
   }, []);
 
   const login = async (credentials) => {
     const res = await authApi.login(credentials);
     if (res.success && res.user) {
-      if (res.token) localStorage.setItem('nexora_token', res.token);
-      setUser(res.user);
+      saveUserSession(res.user, res.token);
     }
   };
 
   const register = async (payload) => {
     const res = await authApi.register(payload);
     if (res.success && res.user) {
-      if (res.token) localStorage.setItem('nexora_token', res.token);
-      setUser(res.user);
+      saveUserSession(res.user, res.token);
     }
   };
 
   const demoLogin = async () => {
     const res = await authApi.demoLogin();
     if (res.success && res.user) {
-      if (res.token) localStorage.setItem('nexora_token', res.token);
-      setUser(res.user);
+      saveUserSession(res.user, res.token);
     }
   };
 
@@ -62,15 +88,14 @@ export const AuthProvider = ({ children }) => {
     try {
       await authApi.logout();
     } finally {
-      localStorage.removeItem('nexora_token');
-      setUser(null);
+      clearUserSession();
     }
   };
 
   const updateUser = async (updates) => {
     const res = await authApi.updateProfile(updates);
     if (res.success && res.user) {
-      setUser(res.user);
+      saveUserSession(res.user);
     }
   };
 

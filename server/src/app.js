@@ -7,6 +7,8 @@ import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import mongoose from 'mongoose';
+import path from 'path';
+import fs from 'fs';
 
 import { connectDB } from './config/db.js';
 
@@ -22,7 +24,16 @@ import companyRoutes from './routes/companyRoutes.js';
 import achievementRoutes from './routes/achievementRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 
-dotenv.config();
+// Robust dotenv loading supporting root directory, server directory, or custom paths
+const serverEnv = path.resolve(process.cwd(), 'server/.env');
+const rootEnv = path.resolve(process.cwd(), '.env');
+if (fs.existsSync(serverEnv)) {
+  dotenv.config({ path: serverEnv });
+} else if (fs.existsSync(rootEnv)) {
+  dotenv.config({ path: rootEnv });
+} else {
+  dotenv.config();
+}
 
 const app = express();
 

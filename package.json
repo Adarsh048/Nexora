@@ -5,6 +5,7 @@
   "type": "module",
   "main": "server/src/server.js",
   "scripts": {
+    "dev": "concurrently -n \"backend,frontend\" -c \"magenta,cyan\" \"npm run dev:server\" \"npm run dev:client\"",
     "start": "node server/src/server.js",
     "build": "npm install --prefix server && npm install --prefix client && npm run build --prefix client",
     "server": "npm run start --prefix server",
@@ -38,5 +39,8 @@
     "gmail-integration"
   ],
   "author": "Nexora Engineering Team",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^10.0.7"
+  }
 }
