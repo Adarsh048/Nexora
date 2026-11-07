@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { inboxApi, gmailApi, applicationApi } from '../services/api.js';
 import { format, formatDistanceToNow } from 'date-fns';
+import { Link } from 'react-router-dom';
 
 export const InboxIntelligencePage = () => {
   const [emails, setEmails] = useState([]);
@@ -339,12 +340,12 @@ export const InboxIntelligencePage = () => {
               <Mail className="w-4 h-4" />
               <span>Connect Google Account</span>
             </button>
-            <a
-              href="/settings?tab=integrations"
+            <Link
+              to="/settings?tab=integrations"
               className="px-3.5 py-2.5 rounded-xl bg-violet-50 text-[#7652E8] text-xs font-bold hover:bg-violet-100 transition-colors"
             >
               API Credentials
-            </a>
+            </Link>
           </div>
         )}
       </div>

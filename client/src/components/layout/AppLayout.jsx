@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Outlet, NavLink } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { LayoutDashboard, FileText, Kanban, Sparkles, Plus } from 'lucide-react';
 import { Sidebar } from './Sidebar.jsx';
 import { TopBar } from './TopBar.jsx';
@@ -8,6 +8,9 @@ import { ApplicationModal } from '../applications/ApplicationModal.jsx';
 import { notificationApi, gmailApi, inboxApi, prefetchWorkspaceData } from '../../services/api.js';
 
 export const AppLayout = () => {
+  const location = useLocation();
+  const workspaceContainerRef = useRef(null);
+
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -15,6 +18,14 @@ export const AppLayout = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [gmailStatus, setGmailStatus] = useState(null);
   const [pendingInboxCount, setPendingInboxCount] = useState(0);
+
+  // Smooth scroll-to-top on route changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    if (workspaceContainerRef.current) {
+      workspaceContainerRef.current.scrollTo({ top: 0, behavior: 'instant' });
+    }
+  }, [location.pathname]);
 
   const fetchHeaderData = async () => {
     try {
@@ -64,7 +75,10 @@ export const AppLayout = () => {
       />
 
       {/* Main Content Workspace */}
-      <div className="flex-1 flex flex-col min-w-0 w-full overflow-y-auto pb-20 lg:pb-0">
+      <div
+        ref={workspaceContainerRef}
+        className="flex-1 flex flex-col min-w-0 w-full overflow-y-auto pb-20 lg:pb-0 scroll-smooth"
+      >
         <TopBar
           onOpenSearch={() => setIsSearchOpen(true)}
           onOpenAddModal={() => setIsAddModalOpen(true)}
@@ -74,7 +88,10 @@ export const AppLayout = () => {
           onRefreshNotifications={fetchHeaderData}
         />
 
-        <main className="flex-1 p-3.5 sm:p-6 lg:p-8 max-w-[1600px] w-full mx-auto transition-all">
+        <main
+          key={location.pathname}
+          className="flex-1 p-3.5 sm:p-6 lg:p-8 max-w-[1600px] w-full mx-auto transition-all animate-in fade-in duration-200"
+        >
           <Outlet context={{ refreshGlobalData: fetchHeaderData }} />
         </main>
       </div>

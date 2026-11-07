@@ -119,6 +119,11 @@ export function prefetchWorkspaceData() {
   request('/applications/kanban').catch(() => {});
   request('/analytics/dashboard').catch(() => {});
   request('/notifications').catch(() => {});
+  request('/inbox?category=All&reviewStatus=pending&limit=50').catch(() => {});
+  request('/analytics/full').catch(() => {});
+  request('/calendar').catch(() => {});
+  request('/companies').catch(() => {});
+  request('/achievements').catch(() => {});
 }
 
 // Auth API
