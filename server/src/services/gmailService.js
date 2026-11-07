@@ -152,6 +152,38 @@ export async function getAuthenticatedGmailClient(userId) {
   return google.gmail({ version: 'v1', auth: oauth2Client });
 }
 
+function extractGmailBody(payload, fallbackSnippet = '') {
+  try {
+    if (!payload) return fallbackSnippet;
+
+    if (payload.body && payload.body.data) {
+      return Buffer.from(payload.body.data, 'base64').toString('utf8');
+    }
+
+    if (payload.parts && payload.parts.length > 0) {
+      for (const part of payload.parts) {
+        if (part.mimeType === 'text/plain' && part.body?.data) {
+          return Buffer.from(part.body.data, 'base64').toString('utf8');
+        }
+      }
+      for (const part of payload.parts) {
+        if (part.mimeType === 'text/html' && part.body?.data) {
+          const html = Buffer.from(part.body.data, 'base64').toString('utf8');
+          return html
+            .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+            .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('Could not decode Gmail message body, using snippet:', e.message);
+  }
+  return fallbackSnippet || '';
+}
+
 export async function syncUserEmails(userId, maxResults = 50) {
   const connection = await EmailConnection.findOne({ userId });
   if (!connection || !connection.connected) {
@@ -180,8 +212,8 @@ export async function syncUserEmails(userId, maxResults = 50) {
       return { success: false, message: connection.errorMessage };
     }
 
-    // Recruitment search query
-    const query = 'subject:(application OR interview OR assessment OR offer OR "moving forward" OR "regret to inform" OR "thank you for applying") OR from:(recruiting OR careers OR jobs OR greenhouse OR lever OR workday)';
+    // Comprehensive recruitment search query covering all major ATS and keywords
+    const query = 'subject:(interview OR assessment OR offer OR application OR candidacy OR "moving forward" OR "regret to inform" OR "thank you for applying" OR "next steps" OR "hackerrank" OR "codesignal" OR "codility") OR from:(recruiting OR careers OR jobs OR greenhouse OR lever OR workday OR ashby OR smartrecruiters OR icims OR taleo OR bamboohr)';
     
     const listResponse = await gmail.users.messages.list({
       userId: 'me',
@@ -201,15 +233,15 @@ export async function syncUserEmails(userId, maxResults = 50) {
       const detail = await gmail.users.messages.get({
         userId: 'me',
         id: msgRef.id,
-        format: 'metadata',
-        metadataHeaders: ['Subject', 'From', 'Date'],
+        format: 'full',
       });
 
-      const headers = detail.data.payload.headers || [];
+      const headers = detail.data.payload?.headers || [];
       const subjectHeader = headers.find(h => h.name.toLowerCase() === 'subject')?.value || '(No Subject)';
       const fromHeader = headers.find(h => h.name.toLowerCase() === 'from')?.value || '';
       const dateHeader = headers.find(h => h.name.toLowerCase() === 'date')?.value;
       const snippet = detail.data.snippet || '';
+      const fullBody = extractGmailBody(detail.data.payload, snippet);
 
       // Parse sender name & email
       let senderName = '';
@@ -220,16 +252,16 @@ export async function syncUserEmails(userId, maxResults = 50) {
         senderEmail = senderMatch[2].trim();
       }
 
-      // Classification & entity extraction
-      const classification = classifyEmail({ subject: subjectHeader, sender: fromHeader, snippet });
-      const entity = extractCompanyInfo(senderEmail, senderName, subjectHeader, snippet);
+      // High-precision classification & entity extraction
+      const classification = classifyEmail({ subject: subjectHeader, sender: fromHeader, snippet: fullBody });
+      const entity = extractCompanyInfo(senderEmail, senderName, subjectHeader, fullBody);
 
       // Match against user applications
       const { matchedApp, confidence } = matchApplication({
         detectedCompany: entity.detectedCompany,
         detectedJobTitle: entity.detectedJobTitle,
         subject: subjectHeader,
-        snippet,
+        snippet: fullBody,
         senderEmail,
       }, applications);
 
@@ -241,12 +273,12 @@ export async function syncUserEmails(userId, maxResults = 50) {
         senderName,
         senderEmail,
         subject: subjectHeader,
-        snippet,
+        snippet: fullBody.length > 800 ? fullBody.substring(0, 800) + '...' : fullBody,
         receivedAt: dateHeader ? new Date(dateHeader) : new Date(),
         detectedCategory: classification.category,
         suggestedStatus: classification.suggestedStatus,
-        detectedCompany: entity.detectedCompany,
-        detectedJobTitle: entity.detectedJobTitle,
+        detectedCompany: matchedApp ? matchedApp.companyName : entity.detectedCompany,
+        detectedJobTitle: matchedApp ? matchedApp.jobTitle : entity.detectedJobTitle,
         matchConfidence: confidence,
         matchedApplicationId: matchedApp ? matchedApp._id : null,
         reviewStatus: 'pending',

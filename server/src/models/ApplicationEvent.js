@@ -40,7 +40,7 @@ const applicationEventSchema = new mongoose.Schema({
   },
   source: {
     type: String,
-    enum: ['manual', 'gmail', 'csv', 'system'],
+    enum: ['manual', 'gmail', 'email', 'csv', 'system'],
     default: 'manual',
   },
   previousStatus: {

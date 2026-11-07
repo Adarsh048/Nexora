@@ -14,6 +14,11 @@ import {
   ExternalLink,
   Layers,
   Inbox,
+  FileText,
+  Building2,
+  Calendar,
+  Briefcase,
+  ArrowRight,
 } from 'lucide-react';
 import { inboxApi, gmailApi, applicationApi } from '../services/api.js';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -26,8 +31,10 @@ export const InboxIntelligencePage = () => {
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState(null);
 
-  // Real Email Ingestion Modal
+  // Ingestion Modal with Smart Paste & Guided Form
   const [showIngestModal, setShowIngestModal] = useState(false);
+  const [ingestTab, setIngestTab] = useState('smart'); // 'smart' or 'guided'
+  const [rawPastedEmail, setRawPastedEmail] = useState('');
   const [ingesting, setIngesting] = useState(false);
   const [ingestForm, setIngestForm] = useState({
     sender: '',
@@ -35,6 +42,9 @@ export const InboxIntelligencePage = () => {
     body: '',
     targetApplicationId: '',
   });
+
+  // Full Email Inspection Modal
+  const [inspectingEmail, setInspectingEmail] = useState(null);
 
   // Google OAuth Configuration Modal
   const [showConfigModal, setShowConfigModal] = useState(false);
@@ -137,17 +147,30 @@ export const InboxIntelligencePage = () => {
 
   const handleIngestEmail = async (e) => {
     e.preventDefault();
-    if (!ingestForm.sender || !ingestForm.subject || !ingestForm.body) {
-      alert('Please fill out the sender, subject, and email body.');
-      return;
-    }
-
     setIngesting(true);
     try {
-      const res = await inboxApi.ingest(ingestForm);
+      let payload = {};
+      if (ingestTab === 'smart') {
+        if (!rawPastedEmail.trim()) {
+          alert('Please paste the email content into the text box.');
+          setIngesting(false);
+          return;
+        }
+        payload = { rawEmail: rawPastedEmail.trim() };
+      } else {
+        if (!ingestForm.sender && !ingestForm.subject && !ingestForm.body) {
+          alert('Please fill out the email details.');
+          setIngesting(false);
+          return;
+        }
+        payload = ingestForm;
+      }
+
+      const res = await inboxApi.ingest(payload);
       setShowIngestModal(false);
+      setRawPastedEmail('');
       setIngestForm({ sender: '', subject: '', body: '', targetApplicationId: '' });
-      setSyncMessage(res.message || 'Real email ingested and classified successfully!');
+      setSyncMessage(res.message || 'Email successfully ingested and classified with verified evidence.');
       fetchData();
     } catch (err) {
       alert(err.message || 'Failed to ingest email.');
@@ -162,16 +185,15 @@ export const InboxIntelligencePage = () => {
         selectedMatch[email._id] ||
         (email.matchedApplicationId?._id || email.matchedApplicationId);
 
-      if (!targetAppId) {
-        alert('Please select an application to apply this status update to.');
-        return;
-      }
-
-      await inboxApi.approve(email._id, {
-        targetApplicationId: targetAppId,
+      const res = await inboxApi.approve(email._id, {
+        targetApplicationId: targetAppId || undefined,
         newStatus: email.suggestedStatus || undefined,
       });
 
+      setSyncMessage(res.message || 'Update approved and verified into your application timeline.');
+      if (inspectingEmail?._id === email._id) {
+        setInspectingEmail(null);
+      }
       fetchData();
     } catch (err) {
       alert(err.message || 'Failed to approve update.');
@@ -181,6 +203,9 @@ export const InboxIntelligencePage = () => {
   const handleDismiss = async (emailId) => {
     try {
       await inboxApi.dismiss(emailId);
+      if (inspectingEmail?._id === emailId) {
+        setInspectingEmail(null);
+      }
       fetchData();
     } catch (err) {
       console.error(err);
@@ -200,17 +225,17 @@ export const InboxIntelligencePage = () => {
   const getCategoryBadge = (category) => {
     switch (category) {
       case 'Offer':
-        return 'bg-emerald-100 text-emerald-800';
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       case 'Interview':
-        return 'bg-violet-100 text-[#7652E8]';
+        return 'bg-violet-50 text-[#7652E8] border-violet-200';
       case 'Assessment':
-        return 'bg-amber-100 text-amber-800';
+        return 'bg-amber-50 text-amber-700 border-amber-200';
       case 'Rejection':
-        return 'bg-rose-100 text-rose-800';
+        return 'bg-rose-50 text-rose-700 border-rose-200';
       case 'Confirmation':
-        return 'bg-sky-100 text-sky-800';
+        return 'bg-sky-50 text-sky-700 border-sky-200';
       default:
-        return 'bg-slate-100 text-slate-700';
+        return 'bg-slate-50 text-slate-700 border-slate-200';
     }
   };
 
@@ -224,7 +249,7 @@ export const InboxIntelligencePage = () => {
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Recruitment email intelligence engine. Accurately extracts entity metadata, interview schedules, and offers with verified timeline evidence.
+            Real-time recruiter email parsing and entity recognition. Extracts interviews, assessments, and offers with verified timeline evidence.
           </p>
         </div>
 
@@ -232,7 +257,7 @@ export const InboxIntelligencePage = () => {
         <div className="flex flex-wrap items-center gap-2.5">
           <button
             onClick={() => setShowIngestModal(true)}
-            className="flex items-center space-x-1.5 px-3.5 py-2.5 rounded-2xl bg-[#7652E8] text-white hover:bg-[#6844dd] text-xs font-bold transition-all cursor-pointer shadow-md shadow-[#7652E8]/25"
+            className="flex items-center space-x-1.5 px-4 py-2.5 rounded-2xl bg-[#7652E8] text-white hover:bg-[#6844dd] text-xs font-bold transition-all cursor-pointer shadow-md shadow-[#7652E8]/25"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Ingest Recruiter Email</span>
@@ -264,14 +289,14 @@ export const InboxIntelligencePage = () => {
               <h3 className="text-sm font-bold text-slate-800">
                 {gmailStatus?.connected
                   ? `Live Account: ${gmailStatus.emailAddress}`
-                  : 'Google Gmail Integration'}
+                  : 'Google Gmail Live Sync'}
               </h3>
               {gmailStatus?.connected ? (
-                <span className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 font-bold border border-emerald-100 flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3" /> Live OAuth 2.0 Connected
+                <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> Direct OAuth 2.0 Connected
                 </span>
               ) : (
-                <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-bold border border-slate-200">
+                <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 font-bold border border-slate-200">
                   Not Connected
                 </span>
               )}
@@ -282,8 +307,8 @@ export const InboxIntelligencePage = () => {
                     gmailStatus.lastSyncedAt
                       ? formatDistanceToNow(new Date(gmailStatus.lastSyncedAt), { addSuffix: true })
                       : 'Just now'
-                  }. Direct Google OAuth 2.0 connection actively monitors for recruitment updates.`
-                : 'Connect your Gmail account via Google OAuth 2.0 to automatically detect recruiter updates, or ingest emails manually below.'}
+                  }. Full message inspection monitors inbound interview bookings, assessments, and offers automatically.`
+                : 'Connect your Gmail account via direct Google OAuth 2.0 to sync automatically, or ingest recruiter emails from any provider.'}
             </p>
           </div>
         </div>
@@ -318,14 +343,14 @@ export const InboxIntelligencePage = () => {
               href="/settings?tab=integrations"
               className="px-3.5 py-2.5 rounded-xl bg-violet-50 text-[#7652E8] text-xs font-bold hover:bg-violet-100 transition-colors"
             >
-              API Settings
+              API Credentials
             </a>
           </div>
         )}
       </div>
 
       {syncMessage && (
-        <div className="p-3.5 rounded-2xl bg-violet-50 border border-violet-100 text-xs text-violet-800 flex items-center justify-between">
+        <div className="p-3.5 rounded-2xl bg-violet-50 border border-violet-100 text-xs text-violet-800 flex items-center justify-between animate-in fade-in">
           <div className="flex items-center space-x-2">
             <Info className="w-4 h-4 text-[#7652E8] shrink-0" />
             <span>{syncMessage}</span>
@@ -380,7 +405,7 @@ export const InboxIntelligencePage = () => {
         </div>
       </div>
 
-      {/* REAL EMAIL INGESTION MODAL */}
+      {/* HIGH-PRECISION RECRUITER EMAIL INGEST MODAL */}
       {showIngestModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
           <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-violet-100 space-y-4 animate-in zoom-in-95 duration-150">
@@ -391,7 +416,7 @@ export const InboxIntelligencePage = () => {
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-800">Ingest Recruiter Email</h3>
-                  <p className="text-[11px] text-slate-400">Paste any recruiter email from Gmail, Outlook, Yahoo, or LinkedIn</p>
+                  <p className="text-[11px] text-slate-400">Accepts emails from Gmail, Outlook, Yahoo, Apple Mail, or LinkedIn</p>
                 </div>
               </div>
               <button
@@ -402,67 +427,90 @@ export const InboxIntelligencePage = () => {
               </button>
             </div>
 
+            {/* Segmented Ingest Tabs */}
+            <div className="flex p-1 bg-[#FAF9FE] rounded-xl border border-violet-100 text-xs font-semibold">
+              <button
+                type="button"
+                onClick={() => setIngestTab('smart')}
+                className={`flex-1 py-1.5 rounded-lg transition-all cursor-pointer ${
+                  ingestTab === 'smart' ? 'bg-[#7652E8] text-white shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                Smart Quick Paste (1-Click)
+              </button>
+              <button
+                type="button"
+                onClick={() => setIngestTab('guided')}
+                className={`flex-1 py-1.5 rounded-lg transition-all cursor-pointer ${
+                  ingestTab === 'guided' ? 'bg-[#7652E8] text-white shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                Structured Fields
+              </button>
+            </div>
+
             <form onSubmit={handleIngestEmail} className="space-y-3.5">
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                  Sender (Name or Email Address)
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. recruiting@stripe.com or Sarah Jenkins <sjenkins@anthropic.com>"
-                  value={ingestForm.sender}
-                  onChange={(e) => setIngestForm({ ...ingestForm, sender: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-violet-100 bg-[#FAF9FE] text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7652E8]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                  Subject Line
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Invitation to Technical Interview - Senior Frontend Engineer"
-                  value={ingestForm.subject}
-                  onChange={(e) => setIngestForm({ ...ingestForm, subject: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-violet-100 bg-[#FAF9FE] text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7652E8]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                  Email Message Body
-                </label>
-                <textarea
-                  required
-                  rows={5}
-                  placeholder="Paste the recruiter's message text here..."
-                  value={ingestForm.body}
-                  onChange={(e) => setIngestForm({ ...ingestForm, body: e.target.value })}
-                  className="w-full p-3 rounded-xl border border-violet-100 bg-[#FAF9FE] text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7652E8] leading-relaxed resize-none"
-                />
-              </div>
-
-              {applications.length > 0 && (
+              {ingestTab === 'smart' ? (
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                    Link to Application (Optional - Auto-detected if omitted)
+                    Paste Raw Recruiter Email Text or Forwarded Message:
                   </label>
-                  <select
-                    value={ingestForm.targetApplicationId}
-                    onChange={(e) => setIngestForm({ ...ingestForm, targetApplicationId: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-violet-100 bg-[#FAF9FE] text-xs font-medium text-slate-700 focus:outline-none"
-                  >
-                    <option value="">Auto-detect from company name & subject</option>
-                    {applications.map((app) => (
-                      <option key={app._id} value={app._id}>
-                        {app.companyName} — {app.jobTitle}
-                      </option>
-                    ))}
-                  </select>
+                  <textarea
+                    required
+                    rows={8}
+                    placeholder={`Paste the email text here. Nexora will automatically detect the sender, company, job role, dates, and category.\n\nExample:\nFrom: Sarah Jenkins <sjenkins@anthropic.com>\nSubject: Anthropic Interview Invitation - Senior Software Engineer\n\nHi Adarsh, Thanks for your application! We would like to invite you for a 45-minute technical video interview next week.`}
+                    value={rawPastedEmail}
+                    onChange={(e) => setRawPastedEmail(e.target.value)}
+                    className="w-full p-3 rounded-xl border border-violet-100 bg-[#FAF9FE] text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7652E8] leading-relaxed resize-none font-mono text-[11px]"
+                  />
+                  <span className="text-[10px] text-slate-400 block mt-1">
+                    💡 Tip: You can paste the raw forwarded email headers or just the text of the message.
+                  </span>
                 </div>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                      Sender (Email or Name)
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Sarah Jenkins <sjenkins@anthropic.com> or recruiting@stripe.com"
+                      value={ingestForm.sender}
+                      onChange={(e) => setIngestForm({ ...ingestForm, sender: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl border border-violet-100 bg-[#FAF9FE] text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7652E8]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                      Subject Line
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Anthropic Interview Invitation - Senior Software Engineer"
+                      value={ingestForm.subject}
+                      onChange={(e) => setIngestForm({ ...ingestForm, subject: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl border border-violet-100 bg-[#FAF9FE] text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7652E8]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                      Email Message Body
+                    </label>
+                    <textarea
+                      required
+                      rows={5}
+                      placeholder="Paste the recruiter's message text here..."
+                      value={ingestForm.body}
+                      onChange={(e) => setIngestForm({ ...ingestForm, body: e.target.value })}
+                      className="w-full p-3 rounded-xl border border-violet-100 bg-[#FAF9FE] text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7652E8] leading-relaxed resize-none"
+                    />
+                  </div>
+                </>
               )}
 
               <div className="pt-2 flex items-center justify-end space-x-2 border-t border-violet-50">
@@ -476,12 +524,68 @@ export const InboxIntelligencePage = () => {
                 <button
                   type="submit"
                   disabled={ingesting}
-                  className="px-5 py-2 rounded-xl bg-[#7652E8] hover:bg-[#6844dd] text-white text-xs font-bold transition-all shadow-md shadow-[#7652E8]/25 cursor-pointer disabled:opacity-50"
+                  className="px-5 py-2 rounded-xl bg-[#7652E8] hover:bg-[#6844dd] text-white text-xs font-bold transition-all shadow-md shadow-[#7652E8]/25 cursor-pointer disabled:opacity-50 flex items-center space-x-1.5"
                 >
-                  {ingesting ? 'Analyzing & Ingesting...' : 'Ingest & Classify'}
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>{ingesting ? 'Analyzing Entities...' : 'Ingest & Classify'}</span>
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* FULL EMAIL INSPECTOR MODAL */}
+      {inspectingEmail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl p-6 max-w-xl w-full shadow-2xl border border-violet-100 space-y-4 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-violet-50 pb-3">
+              <div className="flex items-center space-x-2.5">
+                <span className={`text-[11px] font-bold px-3 py-1 rounded-full border ${getCategoryBadge(inspectingEmail.detectedCategory)}`}>
+                  {inspectingEmail.detectedCategory}
+                </span>
+                <span className="text-xs font-semibold text-slate-400">
+                  {inspectingEmail.matchConfidence}% entity match confidence
+                </span>
+              </div>
+              <button
+                onClick={() => setInspectingEmail(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-base font-bold text-slate-800">{inspectingEmail.subject}</h3>
+              <div className="text-xs text-slate-500 space-y-0.5">
+                <p><strong>From:</strong> {inspectingEmail.senderName} ({inspectingEmail.senderEmail})</p>
+                <p><strong>Received:</strong> {inspectingEmail.receivedAt ? format(new Date(inspectingEmail.receivedAt), 'PPP p') : 'Just now'}</p>
+                <p><strong>Detected Company:</strong> {inspectingEmail.detectedCompany} | <strong>Role:</strong> {inspectingEmail.detectedJobTitle}</p>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[#FAF9FE] border border-violet-100 text-xs text-slate-700 leading-relaxed max-h-60 overflow-y-auto whitespace-pre-wrap font-sans">
+              {inspectingEmail.snippet}
+            </div>
+
+            <div className="pt-2 flex items-center justify-between border-t border-violet-50">
+              <button
+                onClick={() => handleDismiss(inspectingEmail._id)}
+                className="px-3.5 py-1.5 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 text-xs font-bold transition-colors cursor-pointer"
+              >
+                Dismiss Email
+              </button>
+              {inspectingEmail.reviewStatus === 'pending' && (
+                <button
+                  onClick={() => handleApprove(inspectingEmail)}
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#7652E8] to-[#9B7AFB] text-white text-xs font-bold shadow-md shadow-[#7652E8]/25 hover:opacity-95 transition-all cursor-pointer flex items-center space-x-1.5"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Accept & Track Application</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -497,7 +601,7 @@ export const InboxIntelligencePage = () => {
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-800">Configure Google OAuth 2.0</h3>
-                  <p className="text-[11px] text-slate-400">Connect directly to Google Cloud for live Gmail synchronization</p>
+                  <p className="text-[11px] text-slate-400">Direct Google Cloud authorization for live Gmail synchronization</p>
                 </div>
               </div>
               <button
@@ -580,7 +684,7 @@ export const InboxIntelligencePage = () => {
           </div>
           <h3 className="text-sm font-bold text-slate-800">No recruitment emails in this view</h3>
           <p className="text-xs text-slate-400 max-w-sm mx-auto">
-            Nexora scans your linked Gmail inbox or parses recruiter emails you ingest directly into verified timeline events.
+            Nexora automatically scans your linked Gmail inbox or parses recruiter emails you ingest into verified timeline events.
           </p>
           <div className="pt-2">
             <button
@@ -603,6 +707,8 @@ export const InboxIntelligencePage = () => {
               ? `${email.senderName} <${email.senderEmail}>`
               : email.senderEmail || email.sender || 'Recruiting Team';
 
+            const isMatched = Boolean(email.matchedApplicationId);
+
             return (
               <div
                 key={email._id}
@@ -611,19 +717,21 @@ export const InboxIntelligencePage = () => {
                 <div>
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
                     <div className="flex items-center space-x-2.5">
-                      <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${getCategoryBadge(category)}`}>
+                      <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${getCategoryBadge(category)}`}>
                         {category}
                       </span>
-                      <span className="text-[11px] font-semibold text-slate-400">
-                        {confidencePercent}% match confidence
-                      </span>
+                      {confidencePercent > 0 && (
+                        <span className="text-[11px] font-semibold text-slate-400">
+                          {confidencePercent}% match confidence
+                        </span>
+                      )}
                       {email.reviewStatus === 'approved' && (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center gap-1">
-                          <Check className="w-3 h-3" /> Approved & Applied
+                        <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center gap-1">
+                          <Check className="w-3 h-3" /> Approved & Evidence Verified
                         </span>
                       )}
                       {email.reviewStatus === 'dismissed' && (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
+                        <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500">
                           Dismissed
                         </span>
                       )}
@@ -635,10 +743,21 @@ export const InboxIntelligencePage = () => {
                   </div>
 
                   <h3 className="text-sm font-bold text-slate-800">{email.subject}</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">From: {sender}</p>
+                  <div className="flex items-center space-x-3 text-xs text-slate-400 mt-1">
+                    <span>From: <strong className="text-slate-600 font-semibold">{sender}</strong></span>
+                    <span>•</span>
+                    <span>Detected Company: <strong className="text-[#7652E8] font-bold">{email.detectedCompany || 'Company'}</strong></span>
+                  </div>
 
-                  <div className="mt-3 p-3.5 rounded-2xl bg-[#FAF9FE] border border-violet-100/40 text-xs text-slate-600 leading-relaxed font-sans whitespace-pre-wrap">
-                    {email.snippet}
+                  <div
+                    onClick={() => setInspectingEmail(email)}
+                    className="mt-3 p-3.5 rounded-2xl bg-[#FAF9FE] border border-violet-100/40 text-xs text-slate-600 leading-relaxed font-sans whitespace-pre-wrap hover:border-violet-200 transition-all cursor-pointer group"
+                  >
+                    <p className="line-clamp-3">{email.snippet}</p>
+                    <span className="text-[10px] font-bold text-[#7652E8] mt-1.5 inline-flex items-center space-x-1 group-hover:underline">
+                      <span>Inspect full message</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </span>
                   </div>
                 </div>
 
@@ -648,7 +767,7 @@ export const InboxIntelligencePage = () => {
                     <span className="text-slate-400 font-medium">Matched Application:</span>
                     {email.matchedApplicationId ? (
                       <span className="font-bold text-[#7652E8] bg-violet-50 px-2.5 py-1 rounded-lg border border-violet-100">
-                        {email.matchedApplicationId.companyName} — {email.matchedApplicationId.jobTitle}
+                        {email.matchedApplicationId.companyName || email.detectedCompany} — {email.matchedApplicationId.jobTitle || email.detectedJobTitle}
                       </span>
                     ) : (
                       <select
@@ -657,7 +776,7 @@ export const InboxIntelligencePage = () => {
                         }
                         className="px-2.5 py-1.5 rounded-lg border border-violet-100 bg-[#FAF9FE] text-xs font-semibold text-slate-700 focus:outline-none"
                       >
-                        <option value="">Select matching job...</option>
+                        <option value="">Auto-create or select existing application...</option>
                         {applications.map((app) => (
                           <option key={app._id} value={app._id}>
                             {app.companyName} — {app.jobTitle}
@@ -680,7 +799,11 @@ export const InboxIntelligencePage = () => {
                         className="flex items-center space-x-1.5 px-4 py-1.5 rounded-xl bg-gradient-to-r from-[#7652E8] to-[#9B7AFB] text-white text-xs font-bold shadow-md shadow-[#7652E8]/25 hover:opacity-95 transition-all cursor-pointer"
                       >
                         <Check className="w-3.5 h-3.5" />
-                        <span>Accept & Update Timeline</span>
+                        <span>
+                          {isMatched || selectedMatch[email._id]
+                            ? 'Accept & Update Timeline'
+                            : '+ Create & Track Application'}
+                        </span>
                       </button>
                     </div>
                   )}

@@ -72,16 +72,33 @@ export async function approveSuggestion(req, res) {
     }
 
     const appId = targetApplicationId || email.matchedApplicationId;
-    if (!appId) {
-      return res.status(400).json({ success: false, message: 'Please select an application to apply this update to.' });
+    let application = null;
+    let previousStatus = 'Applied';
+
+    if (appId) {
+      application = await Application.findOne({ _id: appId, userId: req.user._id });
     }
 
-    const application = await Application.findOne({ _id: appId, userId: req.user._id });
+    // If no existing application matched, automatically create a new application from email metadata!
     if (!application) {
-      return res.status(404).json({ success: false, message: 'Target application not found' });
+      const initialStatus = newStatus || email.suggestedStatus || 'Applied';
+      application = new Application({
+        userId: req.user._id,
+        companyName: email.detectedCompany || 'Target Company',
+        jobTitle: email.detectedJobTitle || 'Software Engineer',
+        status: initialStatus,
+        source: 'Email Intelligence',
+        appliedDate: email.receivedAt || new Date(),
+        recruiterEmail: email.senderEmail || undefined,
+        recruiterName: email.senderName || undefined,
+        notes: `Imported via verified email update: "${email.subject}"`,
+      });
+      await application.save();
+      previousStatus = 'Applied';
+    } else {
+      previousStatus = application.status;
     }
 
-    const previousStatus = application.status;
     const updatedStatus = newStatus || email.suggestedStatus || previousStatus;
 
     // Update application status
@@ -105,7 +122,7 @@ export async function approveSuggestion(req, res) {
       eventType,
       title: `${email.detectedCategory} update verified from email`,
       eventDate: email.receivedAt || new Date(),
-      source: 'gmail',
+      source: 'email',
       previousStatus,
       newStatus: updatedStatus,
       notes: notes || `Email subject: "${email.subject}" from ${email.senderEmail}`,
@@ -134,7 +151,7 @@ export async function approveSuggestion(req, res) {
 
     res.status(200).json({
       success: true,
-      message: `Status updated to ${updatedStatus} and recorded to timeline with email evidence.`,
+      message: `Status updated to ${updatedStatus} and application timeline verified with email evidence.`,
       data: {
         application,
         timelineEvent,
@@ -199,24 +216,54 @@ export async function manualLinkApplication(req, res) {
 
 export async function ingestRealEmail(req, res) {
   try {
-    const { subject, sender, senderEmail, senderName, body, receivedAt, companyName, jobTitle, targetApplicationId } = req.body;
+    const { subject, sender, senderEmail, senderName, body, rawEmail, receivedAt, companyName, jobTitle, targetApplicationId } = req.body;
 
-    if (!subject && !body) {
+    if (!subject && !body && !rawEmail) {
       return res.status(400).json({ success: false, message: 'Please provide either the email subject or email content.' });
     }
 
-    const emailSubject = (subject || '').trim() || 'Recruitment Communication';
-    const emailBody = (body || '').trim();
-    
+    let emailSubject = (subject || '').trim();
+    let emailBody = (body || '').trim();
     let fromEmail = (senderEmail || '').trim();
     let fromName = (senderName || '').trim();
+    let emailDate = receivedAt ? new Date(receivedAt) : new Date();
+
+    // Smart parsing of full raw email text / forwarded headers
+    const rawToParse = (rawEmail || (emailBody.includes('Subject:') && emailBody.includes('From:') ? emailBody : '')).trim();
+    if (rawToParse) {
+      const fromMatch = rawToParse.match(/^From:\s*(.+)$/im);
+      const subjMatch = rawToParse.match(/^Subject:\s*(.+)$/im);
+      const dateMatch = rawToParse.match(/^Date:\s*(.+)$/im);
+
+      if (fromMatch && fromMatch[1] && !fromEmail) {
+        const rawFrom = fromMatch[1].trim();
+        const m = rawFrom.match(/<([^>]+)>/);
+        if (m) {
+          fromEmail = m[1].trim();
+          fromName = rawFrom.replace(/<[^>]+>/, '').replace(/["']/g, '').trim();
+        } else {
+          fromEmail = rawFrom;
+        }
+      }
+      if (subjMatch && subjMatch[1] && !emailSubject) {
+        emailSubject = subjMatch[1].trim();
+      }
+      if (dateMatch && dateMatch[1]) {
+        const d = new Date(dateMatch[1].trim());
+        if (!isNaN(d.getTime())) emailDate = d;
+      }
+
+      if (!body && rawToParse) {
+        emailBody = rawToParse.replace(/^(From|Subject|Date|To|Cc|Reply-To):\s*.*$/gim, '').trim();
+      }
+    }
 
     if (!fromEmail && sender) {
       const raw = sender.trim();
       const match = raw.match(/<([^>]+)>/);
       if (match) {
         fromEmail = match[1].trim();
-        fromName = fromName || raw.replace(/<[^>]+>/, '').trim();
+        fromName = fromName || raw.replace(/<[^>]+>/, '').replace(/["']/g, '').trim();
       } else if (raw.includes('@')) {
         fromEmail = raw;
         fromName = fromName || raw.split('@')[0];
@@ -226,14 +273,13 @@ export async function ingestRealEmail(req, res) {
       }
     }
 
+    if (!emailSubject) emailSubject = 'Recruitment Communication';
     if (!fromEmail) fromEmail = 'recruiter@company.com';
     if (!fromName) fromName = fromEmail.split('@')[0] || 'Recruiting Team';
 
-    const emailDate = receivedAt ? new Date(receivedAt) : new Date();
-
     const applications = await Application.find({ userId: req.user._id }).lean();
 
-    // Real classification and entity extraction on the actual user email
+    // High-precision classification & entity extraction
     const classification = classifyEmail({ subject: emailSubject, sender: fromEmail, snippet: emailBody });
     const entity = extractCompanyInfo(fromEmail, fromName, emailSubject, emailBody);
 
@@ -242,11 +288,11 @@ export async function ingestRealEmail(req, res) {
 
     if (targetApplicationId) {
       matchedApp = applications.find(a => a._id.toString() === targetApplicationId.toString());
-      if (matchedApp) confidence = 100;
+      if (matchedApp) confidence = 98;
     }
 
     if (!matchedApp) {
-      const targetCompany = companyName || entity.detectedCompany || entity.extractedCompany || '';
+      const targetCompany = companyName || entity.detectedCompany || '';
       const targetRole = jobTitle || entity.detectedJobTitle || '';
 
       const matchResult = matchApplication({
@@ -261,7 +307,7 @@ export async function ingestRealEmail(req, res) {
       confidence = matchResult.confidence;
     }
 
-    const finalCompany = matchedApp ? matchedApp.companyName : (companyName || entity.detectedCompany || entity.extractedCompany || fromName);
+    const finalCompany = matchedApp ? matchedApp.companyName : (companyName || entity.detectedCompany || fromName);
     const finalRole = matchedApp ? matchedApp.jobTitle : (jobTitle || entity.detectedJobTitle || 'Software Engineer');
 
     const messageId = `real_ingest_${Date.now()}_${Math.random().toString(36).substring(7)}`;
@@ -273,7 +319,7 @@ export async function ingestRealEmail(req, res) {
       senderName: fromName,
       senderEmail: fromEmail,
       subject: emailSubject,
-      snippet: emailBody.length > 500 ? emailBody.substring(0, 500) + '...' : emailBody,
+      snippet: emailBody.length > 800 ? emailBody.substring(0, 800) + '...' : emailBody,
       receivedAt: emailDate,
       detectedCategory: classification.category,
       suggestedStatus: classification.suggestedStatus,
