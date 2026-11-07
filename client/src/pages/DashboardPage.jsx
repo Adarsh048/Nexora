@@ -31,20 +31,53 @@ export const DashboardPage = () => {
     }
   };
 
+  const [currentTime, setCurrentTime] = useState(new Date());
+
   useEffect(() => {
     fetchDashboard();
 
     const handleAdded = () => fetchDashboard();
     window.addEventListener('nexora-application-added', handleAdded);
-    return () => window.removeEventListener('nexora-application-added', handleAdded);
+
+    // Keep greeting and time dynamically updated every 30 seconds
+    const timer = setInterval(() => setCurrentTime(new Date()), 30000);
+
+    return () => {
+      window.removeEventListener('nexora-application-added', handleAdded);
+      clearInterval(timer);
+    };
   }, []);
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 18) return 'Good Afternoon';
-    return 'Good Evening';
+  const getTimeContext = () => {
+    const hour = currentTime.getHours();
+    if (hour >= 5 && hour < 12) {
+      return {
+        greeting: 'Good morning',
+        emoji: '☀️',
+        subtitle: 'Start your day strong. Ready to conquer your career goals today?',
+      };
+    } else if (hour >= 12 && hour < 17) {
+      return {
+        greeting: 'Good afternoon',
+        emoji: '🌤️',
+        subtitle: 'Midday momentum! Keep tracking applications and interview updates.',
+      };
+    } else if (hour >= 17 && hour < 22) {
+      return {
+        greeting: 'Good evening',
+        emoji: '🌆',
+        subtitle: 'Wrapping up your day? Review your recruitment updates and progress.',
+      };
+    } else {
+      return {
+        greeting: 'Good night',
+        emoji: '🌙',
+        subtitle: 'Burning the midnight oil. Your consistency and preparation will pay off!',
+      };
+    }
   };
+
+  const timeContext = getTimeContext();
 
   if (loading && !data) {
     return (
@@ -91,11 +124,13 @@ export const DashboardPage = () => {
         <div className="flex-1 flex flex-col justify-between py-1 min-w-0">
           <div>
             <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-[#17172F] tracking-tight font-sans flex items-center gap-2">
-              <span>{getGreeting()}, {user?.name || 'Explorer'}</span>
-              <span className="text-xl sm:text-2xl md:text-3xl select-none">👋</span>
+              <span>{timeContext.greeting}, {user?.name || 'Explorer'}</span>
+              <span className="text-xl sm:text-2xl md:text-3xl select-none" role="img" aria-label="time context">
+                {timeContext.emoji}
+              </span>
             </h1>
             <p className="text-xs sm:text-sm text-[#74748C] mt-1 font-medium">
-              Your job search is on track. Keep the momentum going!
+              {timeContext.subtitle}
             </p>
           </div>
 

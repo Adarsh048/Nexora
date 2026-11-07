@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { Search, Bell, Check, LogOut, Settings as SettingsIcon, Menu } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Search, Bell, Check, LogOut, Settings as SettingsIcon, Menu, ExternalLink } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { notificationApi } from '../../services/api.js';
 import { formatDistanceToNow } from 'date-fns';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export const TopBar = ({
   onOpenSearch,
@@ -13,11 +13,44 @@ export const TopBar = ({
   onRefreshNotifications,
 }) => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
+  const notificationRef = useRef(null);
+  const userMenuRef = useRef(null);
+
+  // Close menus on click outside or touch outside or Escape key
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        setShowNotifications(false);
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setShowUserMenu(false);
+      }
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setShowNotifications(false);
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
   const handleMarkAsRead = async (id, e) => {
-    e.stopPropagation();
+    e?.stopPropagation();
     try {
       await notificationApi.markAsRead(id);
       onRefreshNotifications?.();
@@ -35,8 +68,27 @@ export const TopBar = ({
     }
   };
 
+  const handleNotificationClick = async (n) => {
+    if (!n.read) {
+      await notificationApi.markAsRead(n._id).catch(() => {});
+      onRefreshNotifications?.();
+    }
+    setShowNotifications(false);
+    if (n.link) {
+      navigate(n.link);
+    }
+  };
+
   return (
     <header className="h-16 sm:h-18 px-3.5 sm:px-6 lg:px-8 flex items-center bg-[#F8F7FD]/90 backdrop-blur-md sticky top-0 z-30 transition-all border-b border-[#ECE8FB]/60">
+      {/* Mobile backdrop for notifications */}
+      {showNotifications && (
+        <div
+          className="lg:hidden fixed inset-0 z-40 bg-black/10 backdrop-blur-[1px]"
+          onClick={() => setShowNotifications(false)}
+        />
+      )}
+
       {/* Aligned container matching the max width and padding of the main workspace */}
       <div className="w-full max-w-[1600px] mx-auto flex items-center justify-between gap-3 sm:gap-4">
         {/* Left: Mobile Menu Toggle + Search Bar */}
@@ -73,9 +125,9 @@ export const TopBar = ({
         {/* Right Controls: Notification Bell + User Avatar (Clean, identical to Reference UI) */}
         <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
           {/* Notification Bell */}
-          <div className="relative">
+          <div className="relative" ref={notificationRef}>
             <button
-              onClick={() => setShowNotifications(!showNotifications)}
+              onClick={() => setShowNotifications((prev) => !prev)}
               className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-white border border-[#ECE8FB] hover:border-[#DDD6F7] flex items-center justify-center text-[#74748C] hover:text-[#17172F] transition-all relative cursor-pointer shadow-xs shrink-0"
               aria-label="Notifications"
             >
@@ -86,7 +138,7 @@ export const TopBar = ({
             </button>
 
             {showNotifications && (
-              <div className="absolute right-0 mt-3 w-72 sm:w-80 bg-white rounded-3xl shadow-xl border border-[#ECE8FB] p-4 z-50 animate-in fade-in zoom-in-95 duration-150">
+              <div className="absolute right-0 mt-3 w-72 sm:w-84 bg-white rounded-3xl shadow-xl border border-[#ECE8FB] p-4 z-50 animate-in fade-in zoom-in-95 duration-150">
                 <div className="flex items-center justify-between pb-3 border-b border-[#F0EDFB]">
                   <span className="text-xs font-bold text-[#17172F]">Notifications ({unreadCount})</span>
                   {unreadCount > 0 && (
@@ -106,12 +158,15 @@ export const TopBar = ({
                     notifications.map((n) => (
                       <div
                         key={n._id}
-                        className={`py-2.5 px-1.5 rounded-xl flex items-start justify-between group transition-colors ${
+                        onClick={() => handleNotificationClick(n)}
+                        className={`py-2.5 px-2 rounded-xl flex items-start justify-between group transition-colors cursor-pointer hover:bg-[#F8F7FD] ${
                           !n.read ? 'bg-[#FAF9FE]' : ''
                         }`}
                       >
                         <div className="pr-2">
-                          <p className="text-xs font-bold text-[#17172F]">{n.title}</p>
+                          <p className="text-xs font-bold text-[#17172F] group-hover:text-[#7652E8] transition-colors">
+                            {n.title}
+                          </p>
                           <p className="text-[11px] text-[#74748C] mt-0.5 line-clamp-2">{n.message}</p>
                           <span className="text-[10px] text-[#A09DBA] mt-1 block">
                             {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
@@ -120,7 +175,7 @@ export const TopBar = ({
                         {!n.read && (
                           <button
                             onClick={(e) => handleMarkAsRead(n._id, e)}
-                            className="text-[#9692B0] hover:text-[#7652E8] p-1 cursor-pointer"
+                            className="text-[#9692B0] hover:text-[#7652E8] p-1 cursor-pointer shrink-0"
                             title="Mark read"
                           >
                             <Check className="w-3.5 h-3.5" />
@@ -135,9 +190,9 @@ export const TopBar = ({
           </div>
 
           {/* Profile Avatar */}
-          <div className="relative">
+          <div className="relative" ref={userMenuRef}>
             <button
-              onClick={() => setShowUserMenu(!showUserMenu)}
+              onClick={() => setShowUserMenu((prev) => !prev)}
               className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-[#7652E8] to-[#9B7AFB] text-white flex items-center justify-center font-bold text-xs ring-2 ring-white shadow-xs cursor-pointer shrink-0"
               aria-label="User Profile"
             >

@@ -3,7 +3,54 @@ import ApplicationEvent from '../models/ApplicationEvent.js';
 import CalendarEvent from '../models/CalendarEvent.js';
 import User from '../models/User.js';
 import { getUserAnalytics } from '../services/analyticsService.js';
-import { startOfWeek, endOfWeek } from 'date-fns';
+import { startOfWeek, endOfWeek, format, subDays } from 'date-fns';
+
+export function computeAccurateStreak(user, applications = [], events = []) {
+  const now = new Date();
+  const todayStr = format(now, 'yyyy-MM-dd');
+  const existingDays = Array.isArray(user?.streak?.activeDays) ? user.streak.activeDays : [];
+
+  const daySet = new Set(existingDays);
+  // User is actively on the platform
+  daySet.add(todayStr);
+
+  applications.forEach(app => {
+    if (app.createdAt) daySet.add(format(new Date(app.createdAt), 'yyyy-MM-dd'));
+    if (app.appliedDate) daySet.add(format(new Date(app.appliedDate), 'yyyy-MM-dd'));
+  });
+
+  events.forEach(ev => {
+    if (ev.eventDate) daySet.add(format(new Date(ev.eventDate), 'yyyy-MM-dd'));
+    if (ev.createdAt) daySet.add(format(new Date(ev.createdAt), 'yyyy-MM-dd'));
+  });
+
+  // Calculate consecutive streak backwards from today
+  let currentStreak = 0;
+  let checkDate = now;
+  while (daySet.has(format(checkDate, 'yyyy-MM-dd'))) {
+    currentStreak++;
+    checkDate = subDays(checkDate, 1);
+  }
+
+  // If today had no prior activity check starting from yesterday
+  if (currentStreak === 0) {
+    checkDate = subDays(now, 1);
+    while (daySet.has(format(checkDate, 'yyyy-MM-dd'))) {
+      currentStreak++;
+      checkDate = subDays(checkDate, 1);
+    }
+  }
+
+  const sortedDays = Array.from(daySet).sort().slice(-60);
+  const bestStreak = Math.max(user?.streak?.best || 0, currentStreak);
+
+  return {
+    current: currentStreak,
+    best: bestStreak,
+    lastActiveDate: now,
+    activeDays: sortedDays,
+  };
+}
 
 export async function getDashboardData(req, res) {
   try {
@@ -27,6 +74,14 @@ export async function getDashboardData(req, res) {
         .populate('applicationId', 'companyName jobTitle companyLogo')
         .lean(),
     ]);
+
+    // Accurate Streak Calculation
+    const streak = computeAccurateStreak(user, applications, recentActivity);
+
+    // Asynchronously persist streak updates to MongoDB
+    if (user && (!user.streak || user.streak.current !== streak.current || user.streak.activeDays?.length !== streak.activeDays.length)) {
+      User.findByIdAndUpdate(userId, { streak }).catch(() => {});
+    }
 
     // Counts
     const totalApps = applications.length;
@@ -96,7 +151,7 @@ export async function getDashboardData(req, res) {
           completedThisWeek: weeklyApplicationsCount,
           percentage: weeklyGoalPercent,
         },
-        streak: user.streak || { current: 0, best: 0, activeDays: [] },
+        streak,
         careerGoal: user.careerGoal || 'Get your next offer',
         targetRole: user.targetRole || 'Software Engineer',
         recentActivity,

@@ -250,11 +250,10 @@ export const AuthPage = () => {
                     setIsRegister(false);
                     setError(null);
                   }}
-                  className={`flex-1 py-1.5 sm:py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    !isRegister
+                  className={`flex-1 py-1.5 sm:py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${!isRegister
                       ? 'bg-violet-600 text-white shadow-xs'
                       : 'text-slate-400 hover:text-white'
-                  }`}
+                    }`}
                 >
                   Sign In
                 </button>
@@ -264,11 +263,10 @@ export const AuthPage = () => {
                     setIsRegister(true);
                     setError(null);
                   }}
-                  className={`flex-1 py-1.5 sm:py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    isRegister
+                  className={`flex-1 py-1.5 sm:py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${isRegister
                       ? 'bg-violet-600 text-white shadow-xs'
                       : 'text-slate-400 hover:text-white'
-                  }`}
+                    }`}
                 >
                   Create Account
                 </button>
@@ -293,16 +291,14 @@ export const AuthPage = () => {
                       Full Name
                     </label>
                     <div
-                      className={`relative rounded-xl border transition-all duration-150 h-10 sm:h-11 flex items-center ${
-                        focusedField === 'name'
+                      className={`relative rounded-xl border transition-all duration-150 h-10 sm:h-11 flex items-center ${focusedField === 'name'
                           ? 'border-violet-500/80 bg-white/[0.07] ring-2 ring-violet-500/25'
                           : 'border-white/[0.1] bg-white/[0.04] hover:border-white/[0.18] hover:bg-white/[0.06]'
-                      }`}
+                        }`}
                     >
                       <UserIcon
-                        className={`w-4 h-4 absolute left-3 sm:left-3.5 z-10 transition-colors pointer-events-none ${
-                          focusedField === 'name' ? 'text-violet-400' : 'text-slate-400'
-                        }`}
+                        className={`w-4 h-4 absolute left-3 sm:left-3.5 z-10 transition-colors pointer-events-none ${focusedField === 'name' ? 'text-violet-400' : 'text-slate-400'
+                          }`}
                       />
                       <input
                         type="text"
@@ -325,16 +321,14 @@ export const AuthPage = () => {
                       Target Job Role
                     </label>
                     <div
-                      className={`relative rounded-xl border transition-all duration-150 h-10 sm:h-11 flex items-center ${
-                        focusedField === 'role'
+                      className={`relative rounded-xl border transition-all duration-150 h-10 sm:h-11 flex items-center ${focusedField === 'role'
                           ? 'border-violet-500/80 bg-white/[0.07] ring-2 ring-violet-500/25'
                           : 'border-white/[0.1] bg-white/[0.04] hover:border-white/[0.18] hover:bg-white/[0.06]'
-                      }`}
+                        }`}
                     >
                       <Briefcase
-                        className={`w-4 h-4 absolute left-3 sm:left-3.5 z-10 transition-colors pointer-events-none ${
-                          focusedField === 'role' ? 'text-violet-400' : 'text-slate-400'
-                        }`}
+                        className={`w-4 h-4 absolute left-3 sm:left-3.5 z-10 transition-colors pointer-events-none ${focusedField === 'role' ? 'text-violet-400' : 'text-slate-400'
+                          }`}
                       />
                       <input
                         type="text"
@@ -361,16 +355,14 @@ export const AuthPage = () => {
                   <span className="text-[10px] text-slate-400 font-normal">Work or Personal</span>
                 </div>
                 <div
-                  className={`relative rounded-xl border transition-all duration-150 h-10 sm:h-11 flex items-center ${
-                    focusedField === 'email'
+                  className={`relative rounded-xl border transition-all duration-150 h-10 sm:h-11 flex items-center ${focusedField === 'email'
                       ? 'border-violet-500/80 bg-white/[0.07] ring-2 ring-violet-500/25'
                       : 'border-white/[0.1] bg-white/[0.04] hover:border-white/[0.18] hover:bg-white/[0.06]'
-                  }`}
+                    }`}
                 >
                   <Mail
-                    className={`w-4 h-4 absolute left-3 sm:left-3.5 z-10 transition-colors pointer-events-none ${
-                      focusedField === 'email' ? 'text-violet-400' : 'text-slate-400'
-                    }`}
+                    className={`w-4 h-4 absolute left-3 sm:left-3.5 z-10 transition-colors pointer-events-none ${focusedField === 'email' ? 'text-violet-400' : 'text-slate-400'
+                      }`}
                   />
                   <input
                     type="email"
@@ -402,16 +394,14 @@ export const AuthPage = () => {
                   </button>
                 </div>
                 <div
-                  className={`relative rounded-xl border transition-all duration-150 h-10 sm:h-11 flex items-center ${
-                    focusedField === 'password'
+                  className={`relative rounded-xl border transition-all duration-150 h-10 sm:h-11 flex items-center ${focusedField === 'password'
                       ? 'border-violet-500/80 bg-white/[0.07] ring-2 ring-violet-500/25'
                       : 'border-white/[0.1] bg-white/[0.04] hover:border-white/[0.18] hover:bg-white/[0.06]'
-                  }`}
+                    }`}
                 >
                   <Lock
-                    className={`w-4 h-4 absolute left-3 sm:left-3.5 z-10 transition-colors pointer-events-none ${
-                      focusedField === 'password' ? 'text-violet-400' : 'text-slate-400'
-                    }`}
+                    className={`w-4 h-4 absolute left-3 sm:left-3.5 z-10 transition-colors pointer-events-none ${focusedField === 'password' ? 'text-violet-400' : 'text-slate-400'
+                      }`}
                   />
                   <input
                     type={showPassword ? 'text' : 'password'}
@@ -441,19 +431,16 @@ export const AuthPage = () => {
                   <div className="mt-1.5 space-y-1 animate-in fade-in">
                     <div className="flex items-center space-x-1.5">
                       <div
-                        className={`h-1 flex-1 rounded-full transition-all duration-200 ${
-                          passwordStrength >= 1 ? 'bg-amber-400' : 'bg-white/[0.1]'
-                        }`}
+                        className={`h-1 flex-1 rounded-full transition-all duration-200 ${passwordStrength >= 1 ? 'bg-amber-400' : 'bg-white/[0.1]'
+                          }`}
                       />
                       <div
-                        className={`h-1 flex-1 rounded-full transition-all duration-200 ${
-                          passwordStrength >= 2 ? 'bg-violet-400' : 'bg-white/[0.1]'
-                        }`}
+                        className={`h-1 flex-1 rounded-full transition-all duration-200 ${passwordStrength >= 2 ? 'bg-violet-400' : 'bg-white/[0.1]'
+                          }`}
                       />
                       <div
-                        className={`h-1 flex-1 rounded-full transition-all duration-200 ${
-                          passwordStrength >= 3 ? 'bg-emerald-400' : 'bg-white/[0.1]'
-                        }`}
+                        className={`h-1 flex-1 rounded-full transition-all duration-200 ${passwordStrength >= 3 ? 'bg-emerald-400' : 'bg-white/[0.1]'
+                          }`}
                       />
                     </div>
                     <div className="flex justify-between items-center text-[9px] sm:text-[10px] text-slate-400 px-0.5">
