@@ -1,5 +1,5 @@
 import EmailConnection from '../models/EmailConnection.js';
-import { isGoogleConfigured, generateAuthUrl, exchangeCodeForTokens, syncUserEmails } from '../services/gmailService.js';
+import { isGoogleConfigured, generateAuthUrl, exchangeCodeForTokens, syncUserEmails, configureGoogleCredentials } from '../services/gmailService.js';
 import { addJob } from '../services/queueService.js';
 
 export async function getGmailStatus(req, res) {
@@ -12,7 +12,6 @@ export async function getGmailStatus(req, res) {
       data: {
         isConfigured,
         connected: Boolean(connection && connection.connected),
-        isDemo: Boolean(connection && connection.isDemo),
         emailAddress: connection?.emailAddress || null,
         lastSyncedAt: connection?.lastSyncedAt || null,
         syncStatus: connection?.syncStatus || 'idle',
@@ -81,46 +80,19 @@ export async function syncNow(req, res) {
   }
 }
 
-export async function connectDemoGmail(req, res) {
+export async function configureCredentials(req, res) {
   try {
-    const emailAddress = req.body.emailAddress || req.user.email || 'applicant@gmail.com';
-
-    let connection = await EmailConnection.findOne({ userId: req.user._id });
-    if (!connection) {
-      connection = new EmailConnection({
-        userId: req.user._id,
-        emailAddress,
-        isDemo: true,
-        connected: true,
-        monitoringActive: true,
-        lastSyncedAt: new Date(),
-        syncStatus: 'idle',
-      });
-    } else {
-      connection.emailAddress = emailAddress;
-      connection.isDemo = true;
-      connection.connected = true;
-      connection.monitoringActive = true;
-      connection.syncStatus = 'idle';
-      connection.errorMessage = '';
-      connection.lastSyncedAt = new Date();
+    const { clientId, clientSecret, redirectUri } = req.body;
+    if (!clientId || !clientSecret) {
+      return res.status(400).json({ success: false, message: 'Google Client ID and Client Secret are required.' });
     }
 
-    await connection.save();
-
-    // Trigger initial sync
-    const syncResult = await syncUserEmails(req.user._id);
+    await configureGoogleCredentials({ clientId, clientSecret, redirectUri });
 
     res.status(200).json({
       success: true,
-      data: {
-        connected: true,
-        emailAddress: connection.emailAddress,
-        isDemo: true,
-        lastSyncedAt: connection.lastSyncedAt,
-        syncResult,
-      },
-      message: 'Gmail connected in test intelligence mode. Initial sync completed!',
+      message: 'Google Cloud credentials saved successfully. You can now authorize your live Gmail account.',
+      data: { isConfigured: true },
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

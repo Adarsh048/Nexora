@@ -197,76 +197,74 @@ export async function manualLinkApplication(req, res) {
   }
 }
 
-export async function simulateEmail(req, res) {
+export async function ingestRealEmail(req, res) {
   try {
-    const {
-      type = 'interview',
-      companyName,
-      jobTitle,
-      customSubject,
-      customSnippet,
-      senderEmail,
-      senderName,
-    } = req.body;
+    const { subject, sender, senderEmail, senderName, body, receivedAt, companyName, jobTitle, targetApplicationId } = req.body;
 
-    const applications = await Application.find({ userId: req.user._id });
-
-    // Pick target company/role if not specified
-    let targetCompany = companyName;
-    let targetRole = jobTitle;
-
-    if (!targetCompany && applications.length > 0) {
-      targetCompany = applications[0].companyName;
-      targetRole = applications[0].jobTitle;
-    } else if (!targetCompany) {
-      targetCompany = 'Google';
-      targetRole = 'Software Engineer';
+    if (!subject && !body) {
+      return res.status(400).json({ success: false, message: 'Please provide either the email subject or email content.' });
     }
 
-    const cleanDomain = targetCompany.toLowerCase().replace(/[^a-z0-9]/g, '') || 'company';
-    let subject = customSubject;
-    let snippet = customSnippet;
-    let fromEmail = senderEmail || `recruiting@${cleanDomain}.com`;
-    let fromName = senderName || `${targetCompany} Talent Acquisition`;
+    const emailSubject = (subject || '').trim() || 'Recruitment Communication';
+    const emailBody = (body || '').trim();
+    
+    let fromEmail = (senderEmail || '').trim();
+    let fromName = (senderName || '').trim();
 
-    if (!subject || !snippet) {
-      switch (type.toLowerCase()) {
-        case 'offer':
-          subject = subject || `Offer of employment: ${targetRole || 'Software Engineer'} at ${targetCompany}`;
-          snippet = snippet || `We are delighted to offer you the position of ${targetRole || 'Software Engineer'} at ${targetCompany}. Please find your formal job offer letter and compensation package details enclosed.`;
-          break;
-        case 'assessment':
-          subject = subject || `Online assessment invitation for ${targetRole || 'Software Engineer'} at ${targetCompany}`;
-          snippet = snippet || `Thank you for your interest in ${targetCompany}. Please complete our online coding assessment on HackerRank within the next 48 hours.`;
-          break;
-        case 'rejection':
-          subject = subject || `Update regarding your application to ${targetCompany}`;
-          snippet = snippet || `Thank you for taking the time to speak with us. Unfortunately, at this time we have decided to move forward with other candidates whose experience more closely aligns with our current needs.`;
-          break;
-        case 'confirmation':
-          subject = subject || `Thank you for applying to ${targetCompany}`;
-          snippet = snippet || `We have successfully received your application for the ${targetRole || 'Software Engineer'} role. Our hiring team will review your qualifications shortly.`;
-          break;
-        case 'interview':
-        default:
-          subject = subject || `Invitation to interview: ${targetRole || 'Software Engineer'} with ${targetCompany}`;
-          snippet = snippet || `Hello, We were impressed with your application and would like to invite you to interview with our engineering team for the ${targetRole || 'Software Engineer'} position. Please click below to schedule your interview.`;
-          break;
+    if (!fromEmail && sender) {
+      const raw = sender.trim();
+      const match = raw.match(/<([^>]+)>/);
+      if (match) {
+        fromEmail = match[1].trim();
+        fromName = fromName || raw.replace(/<[^>]+>/, '').trim();
+      } else if (raw.includes('@')) {
+        fromEmail = raw;
+        fromName = fromName || raw.split('@')[0];
+      } else {
+        fromName = raw;
+        fromEmail = 'recruiter@company.com';
       }
     }
 
-    // Run real classification and entity extraction
-    const classification = classifyEmail({ subject, sender: fromEmail, snippet });
-    const entity = extractCompanyInfo(fromEmail, fromName, subject, snippet);
-    const { matchedApp, confidence } = matchApplication({
-      detectedCompany: entity.detectedCompany || targetCompany,
-      detectedJobTitle: entity.detectedJobTitle || targetRole,
-      subject,
-      snippet,
-      senderEmail: fromEmail,
-    }, applications);
+    if (!fromEmail) fromEmail = 'recruiter@company.com';
+    if (!fromName) fromName = fromEmail.split('@')[0] || 'Recruiting Team';
 
-    const messageId = `sim_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+    const emailDate = receivedAt ? new Date(receivedAt) : new Date();
+
+    const applications = await Application.find({ userId: req.user._id }).lean();
+
+    // Real classification and entity extraction on the actual user email
+    const classification = classifyEmail({ subject: emailSubject, sender: fromEmail, snippet: emailBody });
+    const entity = extractCompanyInfo(fromEmail, fromName, emailSubject, emailBody);
+
+    let matchedApp = null;
+    let confidence = 0;
+
+    if (targetApplicationId) {
+      matchedApp = applications.find(a => a._id.toString() === targetApplicationId.toString());
+      if (matchedApp) confidence = 100;
+    }
+
+    if (!matchedApp) {
+      const targetCompany = companyName || entity.detectedCompany || entity.extractedCompany || '';
+      const targetRole = jobTitle || entity.detectedJobTitle || '';
+
+      const matchResult = matchApplication({
+        detectedCompany: targetCompany,
+        detectedJobTitle: targetRole,
+        subject: emailSubject,
+        snippet: emailBody,
+        senderEmail: fromEmail,
+      }, applications);
+
+      matchedApp = matchResult.matchedApp;
+      confidence = matchResult.confidence;
+    }
+
+    const finalCompany = matchedApp ? matchedApp.companyName : (companyName || entity.detectedCompany || entity.extractedCompany || fromName);
+    const finalRole = matchedApp ? matchedApp.jobTitle : (jobTitle || entity.detectedJobTitle || 'Software Engineer');
+
+    const messageId = `real_ingest_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 
     const processed = new ProcessedEmail({
       userId: req.user._id,
@@ -274,13 +272,13 @@ export async function simulateEmail(req, res) {
       threadId: `th_${messageId}`,
       senderName: fromName,
       senderEmail: fromEmail,
-      subject,
-      snippet,
-      receivedAt: new Date(),
+      subject: emailSubject,
+      snippet: emailBody.length > 500 ? emailBody.substring(0, 500) + '...' : emailBody,
+      receivedAt: emailDate,
       detectedCategory: classification.category,
       suggestedStatus: classification.suggestedStatus,
-      detectedCompany: entity.detectedCompany || targetCompany,
-      detectedJobTitle: entity.detectedJobTitle || targetRole,
+      detectedCompany: finalCompany,
+      detectedJobTitle: finalRole,
       matchConfidence: confidence,
       matchedApplicationId: matchedApp ? matchedApp._id : null,
       reviewStatus: 'pending',
@@ -290,8 +288,8 @@ export async function simulateEmail(req, res) {
 
     await Notification.create({
       userId: req.user._id,
-      title: `${classification.category} email detected`,
-      message: `New recruitment email from ${entity.detectedCompany || targetCompany}: "${subject}"`,
+      title: `${classification.category} communication parsed`,
+      message: `Parsed email from ${finalCompany}: "${emailSubject}" (${classification.category} detected)`,
       type: 'email_detected',
       link: '/inbox',
     });
@@ -301,7 +299,7 @@ export async function simulateEmail(req, res) {
     res.status(201).json({
       success: true,
       data: populated,
-      message: `Recruitment email simulated and classified as "${classification.category}" with ${confidence}% match confidence.`,
+      message: `Email successfully analyzed and classified as "${classification.category}" with ${confidence}% match confidence.`,
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

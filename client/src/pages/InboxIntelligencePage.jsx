@@ -11,6 +11,9 @@ import {
   X,
   ChevronRight,
   ShieldCheck,
+  ExternalLink,
+  Layers,
+  Inbox,
 } from 'lucide-react';
 import { inboxApi, gmailApi, applicationApi } from '../services/api.js';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -22,13 +25,21 @@ export const InboxIntelligencePage = () => {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState(null);
-  const [showSimulateModal, setShowSimulateModal] = useState(false);
-  const [simulating, setSimulating] = useState(false);
 
-  // Simulation form
-  const [simScenario, setSimScenario] = useState('interview');
-  const [simCompany, setSimCompany] = useState('');
-  const [simRole, setSimRole] = useState('');
+  // Real Email Ingestion Modal
+  const [showIngestModal, setShowIngestModal] = useState(false);
+  const [ingesting, setIngesting] = useState(false);
+  const [ingestForm, setIngestForm] = useState({
+    sender: '',
+    subject: '',
+    body: '',
+    targetApplicationId: '',
+  });
+
+  // Google OAuth Configuration Modal
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [googleConfig, setGoogleConfig] = useState({ clientId: '', clientSecret: '' });
+  const [savingConfig, setSavingConfig] = useState(false);
 
   // Filters
   const [categoryFilter, setCategoryFilter] = useState('All');
@@ -58,10 +69,6 @@ export const InboxIntelligencePage = () => {
       }
       if (appRes.success && appRes.data) {
         setApplications(appRes.data);
-        if (appRes.data.length > 0 && !simCompany) {
-          setSimCompany(appRes.data[0].companyName);
-          setSimRole(appRes.data[0].jobTitle);
-        }
       }
     } catch (err) {
       console.error(err);
@@ -79,7 +86,7 @@ export const InboxIntelligencePage = () => {
     setSyncMessage(null);
     try {
       const res = await gmailApi.syncNow();
-      setSyncMessage(res.message || 'Sync completed successfully.');
+      setSyncMessage(res.message || 'Gmail sync completed.');
       fetchData();
     } catch (err) {
       setSyncMessage(err.message || 'Sync encountered an error.');
@@ -88,36 +95,64 @@ export const InboxIntelligencePage = () => {
     }
   };
 
-  const handleConnectTest = async () => {
-    setSyncing(true);
+  const handleConnectGmail = async () => {
     try {
-      await gmailApi.connectDemo();
-      setSyncMessage('Connected in test intelligence mode! Initial scan completed.');
-      fetchData();
+      const res = await gmailApi.getAuthUrl();
+      if (res.success && res.url) {
+        window.location.href = res.url;
+      }
     } catch (err) {
-      setSyncMessage(err.message || 'Failed to connect test mode.');
-    } finally {
-      setSyncing(false);
+      setShowConfigModal(true);
     }
   };
 
-  const handleSimulateEmail = async (typeOverride) => {
-    setSimulating(true);
+  const handleSaveGoogleConfig = async (e) => {
+    e.preventDefault();
+    setSavingConfig(true);
     try {
-      const type = typeOverride || simScenario;
-      const res = await inboxApi.simulate({
-        type,
-        companyName: simCompany || undefined,
-        jobTitle: simRole || undefined,
-      });
+      await gmailApi.configure(googleConfig);
+      setShowConfigModal(false);
+      setSyncMessage('Google Cloud credentials saved! You can now authorize your account.');
+      const res = await gmailApi.getAuthUrl();
+      if (res.success && res.url) {
+        window.location.href = res.url;
+      }
+    } catch (err) {
+      alert(err.message || 'Failed to save Google Cloud credentials.');
+    } finally {
+      setSavingConfig(false);
+    }
+  };
 
-      setShowSimulateModal(false);
-      setSyncMessage(res.message || 'Recruiter email simulated and classified!');
+  const handleDisconnectGmail = async () => {
+    if (!window.confirm('Disconnect Gmail? Existing processed updates and verified timelines remain preserved.')) return;
+    try {
+      await gmailApi.disconnect();
+      setSyncMessage('Gmail disconnected successfully.');
       fetchData();
     } catch (err) {
-      alert(err.message || 'Failed to simulate recruiter email.');
+      alert(err.message || 'Failed to disconnect');
+    }
+  };
+
+  const handleIngestEmail = async (e) => {
+    e.preventDefault();
+    if (!ingestForm.sender || !ingestForm.subject || !ingestForm.body) {
+      alert('Please fill out the sender, subject, and email body.');
+      return;
+    }
+
+    setIngesting(true);
+    try {
+      const res = await inboxApi.ingest(ingestForm);
+      setShowIngestModal(false);
+      setIngestForm({ sender: '', subject: '', body: '', targetApplicationId: '' });
+      setSyncMessage(res.message || 'Real email ingested and classified successfully!');
+      fetchData();
+    } catch (err) {
+      alert(err.message || 'Failed to ingest email.');
     } finally {
-      setSimulating(false);
+      setIngesting(false);
     }
   };
 
@@ -189,32 +224,34 @@ export const InboxIntelligencePage = () => {
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            AI-assisted email recognition engine. Detects application status updates and invitations with verified timeline evidence.
+            Recruitment email intelligence engine. Accurately extracts entity metadata, interview schedules, and offers with verified timeline evidence.
           </p>
         </div>
 
         {/* Action Controls */}
         <div className="flex flex-wrap items-center gap-2.5">
           <button
-            onClick={() => setShowSimulateModal(true)}
-            className="flex items-center space-x-1.5 px-3.5 py-2.5 rounded-2xl bg-violet-50 text-[#7652E8] hover:bg-violet-100 border border-violet-100 text-xs font-bold transition-all cursor-pointer shadow-xs"
+            onClick={() => setShowIngestModal(true)}
+            className="flex items-center space-x-1.5 px-3.5 py-2.5 rounded-2xl bg-[#7652E8] text-white hover:bg-[#6844dd] text-xs font-bold transition-all cursor-pointer shadow-md shadow-[#7652E8]/25"
           >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Simulate Test Email</span>
+            <Plus className="w-3.5 h-3.5" />
+            <span>Ingest Recruiter Email</span>
           </button>
 
-          <button
-            onClick={handleSyncNow}
-            disabled={syncing || !gmailStatus?.connected}
-            className="flex items-center space-x-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-[#7652E8] to-[#9B7AFB] text-white text-xs font-bold shadow-md shadow-[#7652E8]/25 hover:opacity-95 transition-all cursor-pointer disabled:opacity-50"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
-            <span>{syncing ? 'Scanning Inbox...' : 'Sync Now'}</span>
-          </button>
+          {gmailStatus?.connected && (
+            <button
+              onClick={handleSyncNow}
+              disabled={syncing}
+              className="flex items-center space-x-2 px-4 py-2.5 rounded-2xl bg-white border border-violet-200 text-[#7652E8] hover:bg-violet-50 text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
+              <span>{syncing ? 'Scanning Gmail...' : 'Sync Gmail'}</span>
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Gmail Connection Status Banner */}
+      {/* Real Gmail Connection Banner */}
       <div className="bg-white rounded-3xl p-6 shadow-xs border border-violet-100/60 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center space-x-4">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#7652E8] to-[#9B7AFB] p-0.5 shadow-sm shrink-0">
@@ -226,16 +263,16 @@ export const InboxIntelligencePage = () => {
             <div className="flex items-center space-x-2">
               <h3 className="text-sm font-bold text-slate-800">
                 {gmailStatus?.connected
-                  ? `Connected: ${gmailStatus.emailAddress}`
-                  : 'Connect Your Gmail Inbox'}
+                  ? `Live Account: ${gmailStatus.emailAddress}`
+                  : 'Google Gmail Integration'}
               </h3>
               {gmailStatus?.connected ? (
                 <span className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 font-bold border border-emerald-100 flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3" /> {gmailStatus.isDemo ? 'Test Mode Active' : 'Live Gmail Active'}
+                  <CheckCircle2 className="w-3 h-3" /> Live OAuth 2.0 Connected
                 </span>
               ) : (
-                <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 font-bold border border-amber-100">
-                  Disconnected
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-bold border border-slate-200">
+                  Not Connected
                 </span>
               )}
             </div>
@@ -245,29 +282,46 @@ export const InboxIntelligencePage = () => {
                     gmailStatus.lastSyncedAt
                       ? formatDistanceToNow(new Date(gmailStatus.lastSyncedAt), { addSuffix: true })
                       : 'Just now'
-                  }. Background processing checks for recruitment updates automatically.`
-                : 'Connect Gmail to automatically parse recruiter emails, interview requests, and offers into verified timeline events.'}
+                  }. Direct Google OAuth 2.0 connection actively monitors for recruitment updates.`
+                : 'Connect your Gmail account via Google OAuth 2.0 to automatically detect recruiter updates, or ingest emails manually below.'}
             </p>
           </div>
         </div>
 
-        {!gmailStatus?.connected ? (
+        {gmailStatus?.connected ? (
           <div className="flex items-center space-x-2 shrink-0">
             <button
-              onClick={handleConnectTest}
+              onClick={handleSyncNow}
               disabled={syncing}
-              className="px-3.5 py-2 rounded-xl bg-[#7652E8] hover:bg-[#6844dd] text-white text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+              className="px-3.5 py-2 rounded-xl bg-violet-50 hover:bg-violet-100 text-[#7652E8] text-xs font-bold transition-all cursor-pointer disabled:opacity-50 flex items-center space-x-1.5"
             >
-              Connect Test Mode (1-Click)
+              <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
+              <span>{syncing ? 'Scanning...' : 'Scan Now'}</span>
+            </button>
+            <button
+              onClick={handleDisconnectGmail}
+              className="px-3.5 py-2 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-bold transition-all cursor-pointer"
+            >
+              Disconnect
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center space-x-2 shrink-0">
+            <button
+              onClick={handleConnectGmail}
+              className="px-4 py-2.5 rounded-xl bg-[#7652E8] hover:bg-[#6844dd] text-white text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center space-x-2"
+            >
+              <Mail className="w-4 h-4" />
+              <span>Connect Google Account</span>
             </button>
             <a
               href="/settings?tab=integrations"
-              className="px-3.5 py-2 rounded-xl bg-violet-50 text-[#7652E8] text-xs font-bold hover:bg-violet-100 transition-colors"
+              className="px-3.5 py-2.5 rounded-xl bg-violet-50 text-[#7652E8] text-xs font-bold hover:bg-violet-100 transition-colors"
             >
-              Settings
+              API Settings
             </a>
           </div>
-        ) : null}
+        )}
       </div>
 
       {syncMessage && (
@@ -276,7 +330,7 @@ export const InboxIntelligencePage = () => {
             <Info className="w-4 h-4 text-[#7652E8] shrink-0" />
             <span>{syncMessage}</span>
           </div>
-          <button onClick={() => setSyncMessage(null)} className="text-violet-400 hover:text-violet-700">
+          <button onClick={() => setSyncMessage(null)} className="text-violet-400 hover:text-violet-700 cursor-pointer">
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -326,101 +380,189 @@ export const InboxIntelligencePage = () => {
         </div>
       </div>
 
-      {/* Simulation Modal */}
-      {showSimulateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
+      {/* REAL EMAIL INGESTION MODAL */}
+      {showIngestModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
           <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-violet-100 space-y-4 animate-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-violet-50 pb-3">
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2.5">
                 <div className="p-2 rounded-xl bg-violet-100 text-[#7652E8]">
-                  <Sparkles className="w-4 h-4" />
+                  <Mail className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-800">Simulate Inbound Recruiter Email</h3>
-                  <p className="text-[11px] text-slate-400">Test Nexora's classification, confidence score, and timeline updates</p>
+                  <h3 className="text-sm font-bold text-slate-800">Ingest Recruiter Email</h3>
+                  <p className="text-[11px] text-slate-400">Paste any recruiter email from Gmail, Outlook, Yahoo, or LinkedIn</p>
                 </div>
               </div>
               <button
-                onClick={() => setShowSimulateModal(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+                onClick={() => setShowIngestModal(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Quick Preset Buttons */}
-            <div>
-              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
-                Choose a Realistic Preset:
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {[
-                  { id: 'interview', label: 'Technical Interview', comp: 'Google', role: 'Software Engineer', badge: 'bg-violet-100 text-[#7652E8]' },
-                  { id: 'offer', label: 'Official Job Offer', comp: 'Stripe', role: 'Full Stack Engineer', badge: 'bg-emerald-100 text-emerald-700' },
-                  { id: 'assessment', label: 'HackerRank Assessment', comp: 'Amazon', role: 'Backend Developer', badge: 'bg-amber-100 text-amber-700' },
-                  { id: 'rejection', label: 'Application Status Update', comp: 'Meta', role: 'Software Engineer', badge: 'bg-rose-100 text-rose-700' },
-                  { id: 'confirmation', label: 'Application Received', comp: 'Apple', role: 'iOS Engineer', badge: 'bg-sky-100 text-sky-700' },
-                ].map((preset) => (
-                  <button
-                    key={preset.id}
-                    type="button"
-                    onClick={() => {
-                      setSimScenario(preset.id);
-                      setSimCompany(preset.comp);
-                      setSimRole(preset.role);
-                      handleSimulateEmail(preset.id);
-                    }}
-                    disabled={simulating}
-                    className="p-3 rounded-2xl border border-violet-100 hover:border-[#7652E8] hover:bg-violet-50/50 text-left transition-all cursor-pointer group"
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${preset.badge}`}>
-                        {preset.label}
-                      </span>
-                    </div>
-                    <p className="text-xs font-bold text-slate-800">{preset.comp}</p>
-                    <p className="text-[11px] text-slate-400">{preset.role}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Target Application Customizer */}
-            {applications.length > 0 && (
-              <div className="pt-2 border-t border-violet-50">
-                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                  Or Test Against an Existing Application:
+            <form onSubmit={handleIngestEmail} className="space-y-3.5">
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                  Sender (Name or Email Address)
                 </label>
-                <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. recruiting@stripe.com or Sarah Jenkins <sjenkins@anthropic.com>"
+                  value={ingestForm.sender}
+                  onChange={(e) => setIngestForm({ ...ingestForm, sender: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-violet-100 bg-[#FAF9FE] text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7652E8]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                  Subject Line
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Invitation to Technical Interview - Senior Frontend Engineer"
+                  value={ingestForm.subject}
+                  onChange={(e) => setIngestForm({ ...ingestForm, subject: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-violet-100 bg-[#FAF9FE] text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7652E8]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                  Email Message Body
+                </label>
+                <textarea
+                  required
+                  rows={5}
+                  placeholder="Paste the recruiter's message text here..."
+                  value={ingestForm.body}
+                  onChange={(e) => setIngestForm({ ...ingestForm, body: e.target.value })}
+                  className="w-full p-3 rounded-xl border border-violet-100 bg-[#FAF9FE] text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7652E8] leading-relaxed resize-none"
+                />
+              </div>
+
+              {applications.length > 0 && (
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                    Link to Application (Optional - Auto-detected if omitted)
+                  </label>
                   <select
-                    value={simCompany}
-                    onChange={(e) => {
-                      const app = applications.find(a => a.companyName === e.target.value);
-                      if (app) {
-                        setSimCompany(app.companyName);
-                        setSimRole(app.jobTitle);
-                      }
-                    }}
-                    className="flex-1 px-3 py-2 rounded-xl border border-violet-100 bg-[#FAF9FE] text-xs font-semibold text-slate-700 focus:outline-none"
+                    value={ingestForm.targetApplicationId}
+                    onChange={(e) => setIngestForm({ ...ingestForm, targetApplicationId: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-violet-100 bg-[#FAF9FE] text-xs font-medium text-slate-700 focus:outline-none"
                   >
+                    <option value="">Auto-detect from company name & subject</option>
                     {applications.map((app) => (
-                      <option key={app._id} value={app.companyName}>
+                      <option key={app._id} value={app._id}>
                         {app.companyName} — {app.jobTitle}
                       </option>
                     ))}
                   </select>
+                </div>
+              )}
 
-                  <button
-                    type="button"
-                    onClick={() => handleSimulateEmail('interview')}
-                    disabled={simulating}
-                    className="px-4 py-2 rounded-xl bg-[#7652E8] text-white text-xs font-bold hover:bg-[#6844dd] transition-all cursor-pointer disabled:opacity-50 shrink-0"
-                  >
-                    {simulating ? 'Injecting...' : 'Send Interview Invite'}
-                  </button>
+              <div className="pt-2 flex items-center justify-end space-x-2 border-t border-violet-50">
+                <button
+                  type="button"
+                  onClick={() => setShowIngestModal(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={ingesting}
+                  className="px-5 py-2 rounded-xl bg-[#7652E8] hover:bg-[#6844dd] text-white text-xs font-bold transition-all shadow-md shadow-[#7652E8]/25 cursor-pointer disabled:opacity-50"
+                >
+                  {ingesting ? 'Analyzing & Ingesting...' : 'Ingest & Classify'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* GOOGLE CLOUD CONFIGURATION MODAL */}
+      {showConfigModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-violet-100 space-y-4 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-violet-50 pb-3">
+              <div className="flex items-center space-x-2.5">
+                <div className="p-2 rounded-xl bg-violet-100 text-[#7652E8]">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-800">Configure Google OAuth 2.0</h3>
+                  <p className="text-[11px] text-slate-400">Connect directly to Google Cloud for live Gmail synchronization</p>
                 </div>
               </div>
-            )}
+              <button
+                onClick={() => setShowConfigModal(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveGoogleConfig} className="space-y-3.5">
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                  Google Client ID
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. 123456789-abcdef.apps.googleusercontent.com"
+                  value={googleConfig.clientId}
+                  onChange={(e) => setGoogleConfig({ ...googleConfig, clientId: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-violet-100 bg-[#FAF9FE] text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7652E8]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                  Google Client Secret
+                </label>
+                <input
+                  type="password"
+                  required
+                  placeholder="GOCSPX-••••••••••••••••"
+                  value={googleConfig.clientSecret}
+                  onChange={(e) => setGoogleConfig({ ...googleConfig, clientSecret: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-violet-100 bg-[#FAF9FE] text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7652E8]"
+                />
+              </div>
+
+              <div className="p-3 rounded-xl bg-violet-50 border border-violet-100 text-[11px] text-slate-600 space-y-1">
+                <div className="font-semibold text-slate-800">Setup Instructions:</div>
+                <div>1. Enable the <strong>Gmail API</strong> in Google Cloud Console.</div>
+                <div>2. Set Authorized Redirect URI to:</div>
+                <code className="block bg-white p-1 rounded border border-violet-200 text-[#7652E8] font-mono text-[10px]">
+                  http://localhost:5000/api/gmail/oauth/callback
+                </code>
+              </div>
+
+              <div className="pt-2 flex items-center justify-end space-x-2 border-t border-violet-50">
+                <button
+                  type="button"
+                  onClick={() => setShowConfigModal(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingConfig}
+                  className="px-5 py-2 rounded-xl bg-[#7652E8] hover:bg-[#6844dd] text-white text-xs font-bold transition-all shadow-md shadow-[#7652E8]/25 cursor-pointer disabled:opacity-50"
+                >
+                  {savingConfig ? 'Saving...' : 'Save & Authorize Gmail'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
@@ -434,19 +576,19 @@ export const InboxIntelligencePage = () => {
       ) : emails.length === 0 ? (
         <div className="bg-white rounded-3xl p-12 text-center border border-violet-100/60 shadow-xs space-y-3">
           <div className="w-12 h-12 rounded-2xl bg-violet-50 text-[#7652E8] flex items-center justify-center mx-auto">
-            <Mail className="w-6 h-6" />
+            <Inbox className="w-6 h-6" />
           </div>
           <h3 className="text-sm font-bold text-slate-800">No recruitment emails in this view</h3>
           <p className="text-xs text-slate-400 max-w-sm mx-auto">
-            Nexora scans your linked inbox for job confirmations, assessments, and interview bookings.
+            Nexora scans your linked Gmail inbox or parses recruiter emails you ingest directly into verified timeline events.
           </p>
           <div className="pt-2">
             <button
-              onClick={() => setShowSimulateModal(true)}
-              className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-violet-100 text-[#7652E8] hover:bg-violet-200 text-xs font-bold transition-all cursor-pointer"
+              onClick={() => setShowIngestModal(true)}
+              className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-[#7652E8] text-white hover:bg-[#6844dd] text-xs font-bold transition-all shadow-md shadow-[#7652E8]/25 cursor-pointer"
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Simulate a Test Recruiter Email</span>
+              <Plus className="w-3.5 h-3.5" />
+              <span>Ingest a Recruiter Email</span>
             </button>
           </div>
         </div>
@@ -553,4 +695,3 @@ export const InboxIntelligencePage = () => {
 };
 
 export default InboxIntelligencePage;
-

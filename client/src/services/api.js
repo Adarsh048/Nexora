@@ -204,10 +204,10 @@ export const gmailApi = {
     request('/gmail/sync', {
       method: 'POST',
     }),
-  connectDemo: (emailAddress) =>
-    request('/gmail/demo-connect', {
+  configure: (credentials) =>
+    request('/gmail/configure', {
       method: 'POST',
-      body: JSON.stringify({ emailAddress }),
+      body: JSON.stringify(credentials),
     }),
   disconnect: () =>
     request('/gmail/disconnect', {
@@ -221,8 +221,8 @@ export const inboxApi = {
     const qs = new URLSearchParams(params).toString();
     return request(`/inbox?${qs}`);
   },
-  simulate: (payload = {}) =>
-    request('/inbox/simulate', {
+  ingest: (payload) =>
+    request('/inbox/ingest', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),

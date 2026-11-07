@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getGmailStatus, getAuthUrl, oauthCallback, disconnect, syncNow, connectDemoGmail } from '../controllers/gmailController.js';
+import { getGmailStatus, getAuthUrl, oauthCallback, disconnect, syncNow, configureCredentials } from '../controllers/gmailController.js';
 import { protect } from '../middleware/auth.js';
 
 const router = Router();
@@ -12,7 +12,7 @@ router.use(protect);
 router.get('/status', getGmailStatus);
 router.get('/auth-url', getAuthUrl);
 router.post('/sync', syncNow);
-router.post('/demo-connect', connectDemoGmail);
+router.post('/configure', configureCredentials);
 router.post('/disconnect', disconnect);
 
 export default router;

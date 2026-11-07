@@ -48,6 +48,10 @@ export const SettingsPage = () => {
     fetchGmailStatus();
   }, []);
 
+  const [googleConfig, setGoogleConfig] = useState({ clientId: '', clientSecret: '' });
+  const [savingConfig, setSavingConfig] = useState(false);
+  const [configSuccess, setConfigSuccess] = useState(null);
+
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -70,15 +74,22 @@ export const SettingsPage = () => {
     }
   };
 
-  const handleConnectDemo = async () => {
-    setSyncing(true);
+  const handleSaveGoogleConfig = async (e) => {
+    e.preventDefault();
+    if (!googleConfig.clientId || !googleConfig.clientSecret) {
+      alert('Please enter both Google Client ID and Client Secret.');
+      return;
+    }
+    setSavingConfig(true);
+    setConfigSuccess(null);
     try {
-      await gmailApi.connectDemo(user?.email || 'applicant@gmail.com');
+      await gmailApi.configure(googleConfig);
+      setConfigSuccess('Google Cloud credentials configured successfully! You can now authorize your account.');
       await fetchGmailStatus();
     } catch (err) {
-      alert(err.message || 'Failed to connect test Gmail');
+      alert(err.message || 'Failed to save Google Cloud credentials.');
     } finally {
-      setSyncing(false);
+      setSavingConfig(false);
     }
   };
 
@@ -298,11 +309,9 @@ export const SettingsPage = () => {
                       <div>
                         <span className="text-slate-400">Account: </span>
                         <strong className="text-slate-800">{gmailStatus.emailAddress}</strong>
-                        {gmailStatus.isDemo && (
-                          <span className="ml-2 text-[10px] bg-violet-100 text-[#7652E8] px-2 py-0.5 rounded-full font-bold">
-                            Test Simulation Active
-                          </span>
-                        )}
+                        <span className="ml-2 text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold inline-flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" /> Live Sync Active
+                        </span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <button
@@ -325,42 +334,73 @@ export const SettingsPage = () => {
                 ) : (
                   <div className="space-y-4">
                     <div className="flex flex-wrap items-center gap-3">
-                      {gmailStatus?.isConfigured ? (
-                        <button
-                          onClick={handleConnectGmail}
-                          className="flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-[#7652E8] hover:bg-[#6844dd] text-white text-xs font-bold shadow-md shadow-[#7652E8]/25 transition-all cursor-pointer"
-                        >
-                          <Mail className="w-4 h-4" />
-                          <span>Connect Google Account</span>
-                        </button>
-                      ) : null}
-
                       <button
-                        onClick={handleConnectDemo}
-                        disabled={syncing}
-                        className="flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-[#7652E8] hover:opacity-95 text-white text-xs font-bold shadow-md shadow-[#7652E8]/25 transition-all cursor-pointer disabled:opacity-50"
+                        onClick={handleConnectGmail}
+                        disabled={!gmailStatus?.isConfigured}
+                        className="flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-[#7652E8] hover:bg-[#6844dd] text-white text-xs font-bold shadow-md shadow-[#7652E8]/25 transition-all cursor-pointer disabled:opacity-50"
                       >
-                        <CheckCircle2 className="w-4 h-4" />
-                        <span>{syncing ? 'Connecting...' : 'Connect Test Mode (Instant 1-Click)'}</span>
+                        <Mail className="w-4 h-4" />
+                        <span>Authorize Google Gmail (OAuth 2.0)</span>
                       </button>
                     </div>
 
-                    {!gmailStatus?.isConfigured && (
-                      <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200/70 text-xs text-amber-800 space-y-2">
-                        <div className="flex items-center space-x-2 font-bold">
-                          <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-                          <span>External Google OAuth Credentials Notice</span>
-                        </div>
-                        <p className="leading-relaxed">
-                          Test mode above works instantly without any API keys. If you wish to connect your personal live Google account:
-                        </p>
-                        <ol className="list-decimal list-inside space-y-1 text-[11px] text-amber-900 font-medium">
-                          <li>Create a project in the Google Cloud Console</li>
-                          <li>Enable the <strong>Gmail API</strong> in APIs & Services</li>
-                          <li>Create an OAuth 2.0 Web Client ID with redirect URI: <code className="bg-amber-100 px-1 py-0.5 rounded">http://localhost:5000/api/gmail/oauth/callback</code></li>
-                          <li>Add <code className="bg-amber-100 px-1 py-0.5 rounded">GOOGLE_CLIENT_ID</code> and <code className="bg-amber-100 px-1 py-0.5 rounded">GOOGLE_CLIENT_SECRET</code> to <code className="bg-amber-100 px-1 py-0.5 rounded">server/.env</code></li>
-                        </ol>
+                    {configSuccess && (
+                      <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center space-x-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>{configSuccess}</span>
                       </div>
+                    )}
+
+                    {!gmailStatus?.isConfigured && (
+                      <form onSubmit={handleSaveGoogleConfig} className="p-5 rounded-2xl bg-[#FAF9FE] border border-violet-100 space-y-3">
+                        <div className="flex items-center space-x-2 text-xs font-bold text-slate-800">
+                          <Sparkles className="w-4 h-4 text-[#7652E8]" />
+                          <span>Configure Google OAuth 2.0 Credentials</span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 leading-relaxed">
+                          Provide your Google Cloud Client credentials below to enable live direct Gmail synchronization for your account:
+                        </p>
+                        <div className="space-y-2">
+                          <div>
+                            <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                              Google Client ID
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              value={googleConfig.clientId}
+                              onChange={(e) => setGoogleConfig({ ...googleConfig, clientId: e.target.value })}
+                              placeholder="e.g. 123456789-abcdef.apps.googleusercontent.com"
+                              className="w-full px-3 py-2 rounded-xl border border-violet-100 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7652E8]"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                              Google Client Secret
+                            </label>
+                            <input
+                              type="password"
+                              required
+                              value={googleConfig.clientSecret}
+                              onChange={(e) => setGoogleConfig({ ...googleConfig, clientSecret: e.target.value })}
+                              placeholder="GOCSPX-••••••••••••••••"
+                              className="w-full px-3 py-2 rounded-xl border border-violet-100 bg-white text-xs font-medium text-slate-800 focus:outline-none focus:border-[#7652E8]"
+                            />
+                          </div>
+                        </div>
+                        <div className="pt-1 flex items-center justify-between">
+                          <span className="text-[10px] text-slate-400">
+                            Authorized redirect URI: <code className="bg-white px-1.5 py-0.5 rounded border border-violet-100 text-[#7652E8]">http://localhost:5000/api/gmail/oauth/callback</code>
+                          </span>
+                          <button
+                            type="submit"
+                            disabled={savingConfig}
+                            className="px-4 py-2 rounded-xl bg-[#7652E8] hover:bg-[#6844dd] text-white text-xs font-bold shadow-xs cursor-pointer disabled:opacity-50"
+                          >
+                            {savingConfig ? 'Saving...' : 'Save & Enable OAuth'}
+                          </button>
+                        </div>
+                      </form>
                     )}
                   </div>
                 )}

@@ -1,4 +1,6 @@
 import { google } from 'googleapis';
+import fs from 'fs';
+import path from 'path';
 import EmailConnection from '../models/EmailConnection.js';
 import ProcessedEmail from '../models/ProcessedEmail.js';
 import Application from '../models/Application.js';
@@ -20,6 +22,42 @@ export function getOAuth2Client() {
 
 export function isGoogleConfigured() {
   return Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
+}
+
+export async function configureGoogleCredentials({ clientId, clientSecret, redirectUri }) {
+  if (clientId) process.env.GOOGLE_CLIENT_ID = clientId.trim();
+  if (clientSecret) process.env.GOOGLE_CLIENT_SECRET = clientSecret.trim();
+  if (redirectUri) process.env.GOOGLE_REDIRECT_URI = redirectUri.trim();
+
+  const envPaths = [
+    path.resolve(process.cwd(), '.env'),
+    path.resolve(process.cwd(), 'server', '.env'),
+  ];
+
+  for (const envPath of envPaths) {
+    try {
+      let content = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf8') : '';
+      
+      const updateOrAppend = (key, val) => {
+        const regex = new RegExp(`^${key}=.*$`, 'm');
+        if (regex.test(content)) {
+          content = content.replace(regex, `${key}=${val}`);
+        } else {
+          content += `\n${key}=${val}`;
+        }
+      };
+
+      if (clientId) updateOrAppend('GOOGLE_CLIENT_ID', clientId.trim());
+      if (clientSecret) updateOrAppend('GOOGLE_CLIENT_SECRET', clientSecret.trim());
+      if (redirectUri) updateOrAppend('GOOGLE_REDIRECT_URI', redirectUri.trim());
+
+      fs.writeFileSync(envPath, content.trim() + '\n', 'utf8');
+    } catch (e) {
+      console.warn(`Could not update env file at ${envPath}:`, e.message);
+    }
+  }
+
+  return true;
 }
 
 export function generateAuthUrl(userId) {
@@ -114,133 +152,20 @@ export async function getAuthenticatedGmailClient(userId) {
   return google.gmail({ version: 'v1', auth: oauth2Client });
 }
 
-export async function syncDemoEmails(userId, connection) {
-  connection.syncStatus = 'syncing';
-  await connection.save();
-
-  try {
-    const applications = await Application.find({ userId });
-    let newItemsDetected = 0;
-
-    const sampleScenarios = [
-      {
-        company: 'Google',
-        role: 'Software Engineer',
-        senderName: 'Google Recruiting',
-        senderEmail: 'recruiting-team@google.com',
-        subject: 'Invitation to Technical Interview: Google - Software Engineer',
-        snippet: 'Hi there, Thank you for your interest in the Software Engineer position at Google. We reviewed your resume and would like to invite you to interview with our engineering team.',
-      },
-      {
-        company: 'Stripe',
-        role: 'Full Stack Engineer',
-        senderName: 'Stripe Careers',
-        senderEmail: 'offers@stripe.com',
-        subject: 'Congratulations! Official Job Offer: Full Stack Engineer at Stripe',
-        snippet: 'Dear candidate, We are thrilled to offer you the position of Full Stack Engineer at Stripe! Please find your official offer letter and compensation terms attached.',
-      },
-      {
-        company: 'Amazon',
-        role: 'Backend Developer',
-        senderName: 'Amazon Web Services Talent',
-        senderEmail: 'aws-assessment@amazon.com',
-        subject: 'Amazon Online Assessment Invitation for Backend Developer',
-        snippet: 'Hello, Thank you for applying to Amazon. The next step is a 60-minute technical coding assessment on HackerRank. Please complete the assessment within 5 days.',
-      },
-    ];
-
-    const itemsToIngest = [];
-    if (applications.length > 0) {
-      for (const app of applications.slice(0, 3)) {
-        const cleanName = app.companyName.toLowerCase().replace(/[^a-z0-9]/g, '') || 'company';
-        itemsToIngest.push({
-          company: app.companyName,
-          role: app.jobTitle,
-          senderName: `${app.companyName} Talent Team`,
-          senderEmail: `careers@${cleanName}.com`,
-          subject: `Interview Invitation: Next round of interviews for ${app.jobTitle} at ${app.companyName}`,
-          snippet: `Hi, Thank you for applying to ${app.companyName}. We would love to schedule your interview with the hiring manager for the ${app.jobTitle} role.`,
-        });
-      }
-    } else {
-      itemsToIngest.push(...sampleScenarios);
-    }
-
-    for (const item of itemsToIngest) {
-      const messageId = `sim_sync_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-      const classification = classifyEmail({ subject: item.subject, sender: item.senderEmail, snippet: item.snippet });
-      const entity = extractCompanyInfo(item.senderEmail, item.senderName, item.subject, item.snippet);
-      const { matchedApp, confidence } = matchApplication({
-        detectedCompany: entity.detectedCompany || item.company,
-        detectedJobTitle: entity.detectedJobTitle || item.role,
-        subject: item.subject,
-        snippet: item.snippet,
-        senderEmail: item.senderEmail,
-      }, applications);
-
-      const processed = new ProcessedEmail({
-        userId,
-        emailConnectionId: connection._id,
-        messageId,
-        threadId: `th_${messageId}`,
-        senderName: item.senderName,
-        senderEmail: item.senderEmail,
-        subject: item.subject,
-        snippet: item.snippet,
-        receivedAt: new Date(),
-        detectedCategory: classification.category,
-        suggestedStatus: classification.suggestedStatus,
-        detectedCompany: entity.detectedCompany || item.company,
-        detectedJobTitle: entity.detectedJobTitle || item.role,
-        matchConfidence: confidence,
-        matchedApplicationId: matchedApp ? matchedApp._id : null,
-        reviewStatus: 'pending',
-      });
-
-      await processed.save();
-      newItemsDetected++;
-    }
-
-    connection.lastSyncedAt = new Date();
-    connection.syncStatus = 'success';
-    connection.errorMessage = '';
-    await connection.save();
-
-    if (newItemsDetected > 0) {
-      await Notification.create({
-        userId,
-        title: 'New recruitment emails detected',
-        message: `Nexora identified ${newItemsDetected} new recruitment email${newItemsDetected > 1 ? 's' : ''} awaiting your review.`,
-        type: 'email_detected',
-        link: '/inbox',
-      });
-    }
-
-    return {
-      success: true,
-      newItemsDetected,
-      totalChecked: itemsToIngest.length,
-      lastSyncedAt: connection.lastSyncedAt,
-      isDemo: true,
-      message: `Scan complete: ${newItemsDetected} new recruitment communications detected.`,
-    };
-  } catch (err) {
-    connection.syncStatus = 'error';
-    connection.errorMessage = err.message;
-    await connection.save();
-    return { success: false, message: err.message };
-  }
-}
-
-export async function syncUserEmails(userId, maxResults = 25) {
+export async function syncUserEmails(userId, maxResults = 50) {
   const connection = await EmailConnection.findOne({ userId });
   if (!connection || !connection.connected) {
-    return { success: false, message: 'Gmail is not connected.' };
+    return {
+      success: false,
+      message: 'Gmail is not connected. Connect your Google account in Settings or use the Real Email Ingestion tool.',
+    };
   }
 
-  // If connection is in demo mode or Google credentials are not in environment, use demo sync engine
-  if (connection.isDemo || !isGoogleConfigured()) {
-    return syncDemoEmails(userId, connection);
+  if (!isGoogleConfigured()) {
+    return {
+      success: false,
+      message: 'Google OAuth credentials (GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET) are required to sync live Google accounts.',
+    };
   }
 
   connection.syncStatus = 'syncing';
@@ -250,7 +175,7 @@ export async function syncUserEmails(userId, maxResults = 25) {
     const gmail = await getAuthenticatedGmailClient(userId);
     if (!gmail) {
       connection.syncStatus = 'error';
-      connection.errorMessage = 'Failed to authenticate with Google API';
+      connection.errorMessage = 'Failed to authenticate with Google API. Your session may have expired.';
       await connection.save();
       return { success: false, message: connection.errorMessage };
     }

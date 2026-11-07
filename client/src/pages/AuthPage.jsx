@@ -300,7 +300,7 @@ export const AuthPage = () => {
                       }`}
                     >
                       <UserIcon
-                        className={`w-4 h-4 absolute left-3 sm:left-3.5 transition-colors pointer-events-none ${
+                        className={`w-4 h-4 absolute left-3 sm:left-3.5 z-10 transition-colors pointer-events-none ${
                           focusedField === 'name' ? 'text-violet-400' : 'text-slate-400'
                         }`}
                       />
@@ -309,6 +309,7 @@ export const AuthPage = () => {
                         required
                         value={name}
                         autoComplete="name"
+                        style={{ colorScheme: 'dark' }}
                         onFocus={() => setFocusedField('name')}
                         onBlur={() => setFocusedField(null)}
                         onChange={(e) => setName(e.target.value)}
@@ -331,7 +332,7 @@ export const AuthPage = () => {
                       }`}
                     >
                       <Briefcase
-                        className={`w-4 h-4 absolute left-3 sm:left-3.5 transition-colors pointer-events-none ${
+                        className={`w-4 h-4 absolute left-3 sm:left-3.5 z-10 transition-colors pointer-events-none ${
                           focusedField === 'role' ? 'text-violet-400' : 'text-slate-400'
                         }`}
                       />
@@ -339,6 +340,7 @@ export const AuthPage = () => {
                         type="text"
                         value={targetRole}
                         autoComplete="organization-title"
+                        style={{ colorScheme: 'dark' }}
                         onFocus={() => setFocusedField('role')}
                         onBlur={() => setFocusedField(null)}
                         onChange={(e) => setTargetRole(e.target.value)}
@@ -366,7 +368,7 @@ export const AuthPage = () => {
                   }`}
                 >
                   <Mail
-                    className={`w-4 h-4 absolute left-3 sm:left-3.5 transition-colors pointer-events-none ${
+                    className={`w-4 h-4 absolute left-3 sm:left-3.5 z-10 transition-colors pointer-events-none ${
                       focusedField === 'email' ? 'text-violet-400' : 'text-slate-400'
                     }`}
                   />
@@ -375,6 +377,7 @@ export const AuthPage = () => {
                     required
                     value={email}
                     autoComplete="email"
+                    style={{ colorScheme: 'dark' }}
                     onFocus={() => setFocusedField('email')}
                     onBlur={() => setFocusedField(null)}
                     onChange={(e) => setEmail(e.target.value)}
@@ -406,7 +409,7 @@ export const AuthPage = () => {
                   }`}
                 >
                   <Lock
-                    className={`w-4 h-4 absolute left-3 sm:left-3.5 transition-colors pointer-events-none ${
+                    className={`w-4 h-4 absolute left-3 sm:left-3.5 z-10 transition-colors pointer-events-none ${
                       focusedField === 'password' ? 'text-violet-400' : 'text-slate-400'
                     }`}
                   />
@@ -415,6 +418,7 @@ export const AuthPage = () => {
                     required
                     value={password}
                     autoComplete={isRegister ? "new-password" : "current-password"}
+                    style={{ colorScheme: 'dark' }}
                     onFocus={() => setFocusedField('password')}
                     onBlur={() => setFocusedField(null)}
                     onChange={(e) => setPassword(e.target.value)}
