@@ -139,20 +139,23 @@ export async function getMe(req, res) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
+    const userPayload = {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar,
+      careerGoal: user.careerGoal,
+      targetRole: user.targetRole,
+      weeklyGoal: user.weeklyGoal,
+      streak: user.streak,
+      preferences: user.preferences,
+      onboardingCompleted: user.onboardingCompleted,
+    };
+
     res.status(200).json({
       success: true,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        avatar: user.avatar,
-        careerGoal: user.careerGoal,
-        targetRole: user.targetRole,
-        weeklyGoal: user.weeklyGoal,
-        streak: user.streak,
-        preferences: user.preferences,
-        onboardingCompleted: user.onboardingCompleted,
-      },
+      data: userPayload,
+      user: userPayload,
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -178,20 +181,23 @@ export async function updateProfile(req, res) {
 
     await user.save();
 
+    const userPayload = {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar,
+      careerGoal: user.careerGoal,
+      targetRole: user.targetRole,
+      weeklyGoal: user.weeklyGoal,
+      streak: user.streak,
+      preferences: user.preferences,
+      onboardingCompleted: user.onboardingCompleted,
+    };
+
     res.status(200).json({
       success: true,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        avatar: user.avatar,
-        careerGoal: user.careerGoal,
-        targetRole: user.targetRole,
-        weeklyGoal: user.weeklyGoal,
-        streak: user.streak,
-        preferences: user.preferences,
-        onboardingCompleted: user.onboardingCompleted,
-      },
+      data: userPayload,
+      user: userPayload,
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
