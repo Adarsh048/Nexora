@@ -14,9 +14,11 @@ export const MetricCards = ({
       value: totalApplications,
       change: totalApplications > 0 ? '+20%' : null,
       icon: Briefcase,
-      iconBg: 'bg-[#EDE8FF]',
+      iconBg: 'bg-gradient-to-tr from-[#EDE8FF] to-[#DFD6FC]',
       iconColor: 'text-[#7652E8]',
+      accentBorder: 'border-t-2 border-t-[#7652E8]',
       badgeBg: 'bg-[#EAFBF3] text-[#22A96D]',
+      glowHover: 'hover:shadow-[0_14px_30px_-5px_rgba(118,82,232,0.14)]',
     },
     {
       id: 'interviews',
@@ -24,9 +26,11 @@ export const MetricCards = ({
       value: interviewsCount,
       change: interviewsCount > 0 ? '+40%' : null,
       icon: Users,
-      iconBg: 'bg-[#E5F5FD]',
+      iconBg: 'bg-gradient-to-tr from-[#E5F5FD] to-[#D0EEFB]',
       iconColor: 'text-[#22A7F0]',
+      accentBorder: 'border-t-2 border-t-[#22A7F0]',
       badgeBg: 'bg-[#EAFBF3] text-[#22A96D]',
+      glowHover: 'hover:shadow-[0_14px_30px_-5px_rgba(34,167,240,0.14)]',
     },
     {
       id: 'offers',
@@ -34,9 +38,11 @@ export const MetricCards = ({
       value: offersCount,
       change: null,
       icon: Trophy,
-      iconBg: 'bg-[#FFF7E6]',
+      iconBg: 'bg-gradient-to-tr from-[#FFF7E6] to-[#FFE9BF]',
       iconColor: 'text-[#F4B544]',
+      accentBorder: 'border-t-2 border-t-[#F4B544]',
       badgeBg: '',
+      glowHover: 'hover:shadow-[0_14px_30px_-5px_rgba(244,181,68,0.14)]',
     },
     {
       id: 'rejected',
@@ -44,9 +50,11 @@ export const MetricCards = ({
       value: rejectedCount,
       change: null,
       icon: XCircle,
-      iconBg: 'bg-[#FEECEF]',
+      iconBg: 'bg-gradient-to-tr from-[#FEECEF] to-[#FCD3DA]',
       iconColor: 'text-[#EF6674]',
+      accentBorder: 'border-t-2 border-t-[#EF6674]',
       badgeBg: '',
+      glowHover: 'hover:shadow-[0_14px_30px_-5px_rgba(239,102,116,0.14)]',
     },
   ];
 
@@ -57,12 +65,12 @@ export const MetricCards = ({
         return (
           <div
             key={card.id}
-            className="bg-white rounded-3xl p-4 sm:p-5 border border-[#ECE8FB] shadow-[0_8px_25px_-4px_rgba(118,82,232,0.04),0_2px_6px_rgba(0,0,0,0.015)] hover:shadow-[0_14px_30px_-5px_rgba(118,82,232,0.1)] hover:border-[#DDD6F7] hover:-translate-y-0.5 transition-all duration-200 group flex items-center justify-between h-full min-h-[96px]"
+            className={`bg-white rounded-3xl p-4 sm:p-5 border border-[#ECE8FB] ${card.accentBorder} shadow-[0_8px_25px_-4px_rgba(118,82,232,0.04),0_2px_6px_rgba(0,0,0,0.015)] ${card.glowHover} hover:border-[#DDD6F7] hover:-translate-y-1 transition-all duration-200 group flex items-center justify-between h-full min-h-[96px]`}
           >
             <div className="flex items-center space-x-3 sm:space-x-4 min-w-0">
-              {/* Soft Tinted Icon Container */}
+              {/* Soft Gradient Tinted Icon Container */}
               <div
-                className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl ${card.iconBg} flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105 shadow-2xs`}
+                className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl ${card.iconBg} flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-108 shadow-xs`}
               >
                 <Icon className={`w-5.5 h-5.5 sm:w-6 sm:h-6 ${card.iconColor}`} />
               </div>

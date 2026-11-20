@@ -80,7 +80,7 @@ export const TopBar = ({
   };
 
   return (
-    <header className="h-16 sm:h-18 px-3.5 sm:px-6 lg:px-8 flex items-center bg-[#F8F7FD]/90 backdrop-blur-md sticky top-0 z-30 transition-all border-b border-[#ECE8FB]/60">
+    <header className="h-16 sm:h-18 px-3.5 sm:px-6 lg:px-8 flex items-center bg-white/75 backdrop-blur-xl sticky top-0 z-30 transition-all border-b border-[#ECE8FB]/70 shadow-[0_2px_15px_-4px_rgba(118,82,232,0.03)]">
       {/* Mobile backdrop for notifications */}
       {showNotifications && (
         <div
@@ -133,7 +133,10 @@ export const TopBar = ({
             >
               <Bell className="w-4 h-4" />
               {unreadCount > 0 && (
-                <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#EF6674] ring-2 ring-white" />
+                <>
+                  <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#EF6674] ring-2 ring-white" />
+                  <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#EF6674] animate-ping" />
+                </>
               )}
             </button>
 

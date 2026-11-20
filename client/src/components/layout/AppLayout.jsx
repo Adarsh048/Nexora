@@ -64,7 +64,12 @@ export const AppLayout = () => {
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-[#F8F7FD] overflow-x-hidden">
+    <div className="flex min-h-screen bg-[#F8F7FD] overflow-x-hidden relative">
+      {/* Refined Ambient Background Atmosphere Glows */}
+      <div className="fixed top-0 left-64 w-[600px] h-[400px] bg-gradient-to-br from-[#7652E8]/08 via-[#9B7AFB]/04 to-transparent rounded-full blur-[140px] pointer-events-none -z-10" />
+      <div className="fixed top-20 right-0 w-[500px] h-[450px] bg-gradient-to-bl from-[#489BEE]/07 via-[#7652E8]/03 to-transparent rounded-full blur-[150px] pointer-events-none -z-10" />
+      <div className="fixed bottom-10 left-1/2 w-[450px] h-[350px] bg-gradient-to-t from-[#F4B544]/04 to-transparent rounded-full blur-[160px] pointer-events-none -z-10" />
+
       {/* Persistent Visual Sidebar (Responsive Drawer on Mobile) */}
       <Sidebar
         gmailStatus={gmailStatus}
@@ -97,7 +102,7 @@ export const AppLayout = () => {
       </div>
 
       {/* Sleek Mobile Bottom Navigation Bar with Prominent Center Add Button (< lg screens) */}
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-lg border-t border-[#ECE8FB] py-1.5 px-2 z-30 flex items-center justify-around shadow-[0_-4px_25px_rgba(118,82,232,0.08)]">
+      <nav className="lg:hidden fixed bottom-0 inset-x-0 bg-white/90 backdrop-blur-xl border-t border-[#ECE8FB]/80 py-1.5 px-2 z-30 flex items-center justify-around shadow-[0_-8px_30px_rgba(118,82,232,0.08)]">
         {/* 1. Home */}
         <NavLink
           to="/"

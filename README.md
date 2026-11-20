@@ -1,5 +1,5 @@
 # NEXORA — Complete Job Application Intelligence Platform
-
+mak 
 > **"Every application. Every update. One place."**
 
 Nexora is a premium Job Application Intelligence Platform engineered to centralize application tracking, monitor recruitment correspondence, generate evidence-backed application timelines, manage candidate interviews, and deliver career-search analytics.

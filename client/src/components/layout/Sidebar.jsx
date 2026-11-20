@@ -70,7 +70,7 @@ export const Sidebar = ({
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed lg:static top-0 bottom-0 left-0 z-50 w-64 min-h-screen bg-[#1A1633] text-slate-300 flex flex-col justify-between select-none shrink-0 overflow-y-auto lg:overflow-hidden shadow-2xl lg:shadow-xl transition-transform duration-300 ease-in-out border-r border-white/[0.06] ${
+        className={`fixed lg:static top-0 bottom-0 left-0 z-50 w-64 min-h-screen bg-gradient-to-b from-[#181433] via-[#14102C] to-[#100D24] text-slate-300 flex flex-col justify-between select-none shrink-0 overflow-y-auto lg:overflow-hidden shadow-2xl lg:shadow-xl transition-transform duration-300 ease-in-out border-r border-white/[0.08] ${
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
@@ -79,14 +79,19 @@ export const Sidebar = ({
           {/* Brand Header */}
           <div className="h-18 sm:h-20 px-6 flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-[#8C6DF2] to-[#7652E8] flex items-center justify-center text-white shadow-[0_4px_16px_rgba(118,82,232,0.4)] shrink-0">
+              <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-[#8C6DF2] via-[#7C59EC] to-[#6842E5] flex items-center justify-center text-white shadow-[0_0_20px_rgba(118,82,232,0.5)] border border-white/25 shrink-0">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2L2 9.5L12 17L22 9.5L12 2Z" opacity="0.9" />
                   <path d="M4 12.5L12 18.5L20 12.5" stroke="currentColor" strokeWidth="2" fill="none" />
                   <path d="M4 16L12 22L20 16" stroke="currentColor" strokeWidth="2" fill="none" />
                 </svg>
               </div>
-              <span className="font-black text-white text-lg tracking-tight font-sans">NEXORA</span>
+              <div className="flex items-center space-x-2">
+                <span className="font-black text-white text-lg tracking-tight font-sans">NEXORA</span>
+                <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-md bg-white/10 text-violet-300 border border-violet-400/30">
+                  v2.0
+                </span>
+              </div>
             </div>
 
             {/* Mobile Close Button */}
@@ -105,7 +110,7 @@ export const Sidebar = ({
           <div className="px-4 pb-3">
             <button
               onClick={handleAddJobClick}
-              className="w-full py-2.5 px-4 rounded-2xl bg-gradient-to-r from-[#7652E8] via-[#835FEF] to-[#9B7AFB] hover:from-[#6A42E4] hover:to-[#8E6DF3] text-white text-xs font-black shadow-[0_6px_20px_rgba(118,82,232,0.35)] flex items-center justify-center space-x-2 transition-all hover:-translate-y-0.5 active:translate-y-0 active:scale-98 cursor-pointer group"
+              className="w-full py-2.5 px-4 rounded-2xl bg-gradient-to-r from-[#7652E8] via-[#855FEA] to-[#9B7AFB] hover:from-[#6A42E4] hover:to-[#8E6DF3] text-white text-xs font-black shadow-[0_6px_22px_rgba(118,82,232,0.45)] flex items-center justify-center space-x-2 transition-all hover:-translate-y-0.5 active:translate-y-0 active:scale-98 cursor-pointer group animate-shimmer border border-white/20"
             >
               <div className="w-5 h-5 rounded-lg bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
                 <Plus className="w-3.5 h-3.5 stroke-[3] text-white" />
@@ -115,7 +120,7 @@ export const Sidebar = ({
           </div>
 
           {/* Navigation Items */}
-          <nav className="px-3.5 py-1 space-y-1 flex-1">
+          <nav className="px-3 py-1 space-y-1 flex-1">
             {navLinks.map((link) => {
               const Icon = link.icon;
               return (
@@ -125,10 +130,10 @@ export const Sidebar = ({
                   end={link.to === '/'}
                   onClick={handleLinkClick}
                   className={({ isActive }) =>
-                    `flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-[13px] font-semibold transition-all duration-200 group ${
+                    `flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-[13px] font-semibold transition-all duration-200 group relative ${
                       isActive
-                        ? 'bg-[#7652E8] text-white font-bold shadow-[0_8px_20px_-4px_rgba(118,82,232,0.45)]'
-                        : 'text-[#9692B0] hover:text-white hover:bg-white/[0.06]'
+                        ? 'bg-gradient-to-r from-[#7652E8] via-[#815CF0] to-[#8E6BF3] text-white font-bold shadow-[0_8px_20px_-4px_rgba(118,82,232,0.5)] border border-white/20'
+                        : 'text-[#9692B0] hover:text-white hover:bg-white/[0.07]'
                     }`
                   }
                 >
@@ -165,7 +170,7 @@ export const Sidebar = ({
         {/* Bottom Area: Mountain Silhouette & User Profile */}
         <div className="relative z-10 pt-4 pb-5 px-4">
           {/* Mountain Silhouette Art */}
-          <div className="absolute inset-x-0 bottom-0 pointer-events-none opacity-20">
+          <div className="absolute inset-x-0 bottom-0 pointer-events-none opacity-25">
             <svg viewBox="0 0 256 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
               <path d="M-20 120 L40 60 L100 120 Z" fill="#6C5CE7" />
               <path d="M60 120 L130 40 L190 90 L240 50 L280 120 Z" fill="#4834D4" />
@@ -174,21 +179,23 @@ export const Sidebar = ({
           </div>
 
           {/* User Profile Card */}
-          <div className="relative bg-white/[0.08] backdrop-blur-md rounded-2xl p-3 border border-white/10 flex items-center justify-between">
+          <div className="relative bg-white/[0.07] backdrop-blur-md rounded-2xl p-3 border border-white/12 hover:border-white/20 transition-all flex items-center justify-between shadow-lg">
             <div className="flex items-center space-x-3 min-w-0">
-              <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-[#7652E8] to-[#9B7AFB] flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-inner">
+              <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-[#7652E8] to-[#9B7AFB] flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-inner border border-white/20">
                 {user?.name ? user.name.slice(0, 2).toUpperCase() : 'NX'}
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-bold text-white truncate">{user?.name || 'User'}</p>
                 <div className="flex items-center space-x-1.5 mt-0.5">
                   <span
-                    className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                      gmailStatus?.connected ? 'bg-[#35B982]' : 'bg-slate-400'
+                    className={`w-2 h-2 rounded-full shrink-0 ${
+                      gmailStatus?.connected
+                        ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]'
+                        : 'bg-slate-400'
                     }`}
                   />
-                  <span className="text-[10px] text-slate-400 truncate font-medium">
-                    {gmailStatus?.connected ? 'Gmail Active' : 'Gmail Off'}
+                  <span className="text-[10px] text-slate-300 truncate font-medium">
+                    {gmailStatus?.connected ? 'Gmail Sync Active' : 'Gmail Standby'}
                   </span>
                 </div>
               </div>

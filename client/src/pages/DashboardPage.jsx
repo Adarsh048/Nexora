@@ -138,9 +138,9 @@ export const DashboardPage = () => {
           <div className="mt-4 flex items-center space-x-3 flex-wrap gap-y-2">
             <button
               onClick={() => setIsAddModalOpen(true)}
-              className="flex items-center space-x-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#7652E8] via-[#855FEA] to-[#9B7AFB] hover:from-[#6A42E4] hover:to-[#8E6DF3] text-white text-xs sm:text-sm font-extrabold shadow-lg shadow-[#7652E8]/35 hover:shadow-xl hover:shadow-[#7652E8]/45 hover:-translate-y-0.5 active:translate-y-0 active:scale-98 transition-all cursor-pointer group"
+              className="flex items-center space-x-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#7652E8] via-[#855FEA] to-[#9B7AFB] hover:from-[#6A42E4] hover:to-[#8E6DF3] text-white text-xs sm:text-sm font-extrabold shadow-lg shadow-[#7652E8]/35 hover:shadow-xl hover:shadow-[#7652E8]/45 hover:-translate-y-0.5 active:translate-y-0 active:scale-98 transition-all cursor-pointer group animate-shimmer"
             >
-              <div className="w-5 h-5 rounded-lg bg-white/25 flex items-center justify-center group-hover:bg-white/35 transition-colors">
+              <div className="w-5 h-5 rounded-lg bg-white/25 flex items-center justify-center group-hover:bg-white/35 group-hover:scale-110 transition-all">
                 <Plus className="w-3.5 h-3.5 stroke-[3] text-white" />
               </div>
               <span className="whitespace-nowrap">Add New Job</span>
