@@ -33,7 +33,8 @@ export async function getAuthUrl(req, res) {
       });
     }
 
-    const url = generateAuthUrl(req.user._id);
+    const from = req.query.from || 'settings';
+    const url = generateAuthUrl(req.user._id, { from });
     res.status(200).json({ success: true, url });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -41,28 +42,51 @@ export async function getAuthUrl(req, res) {
 }
 
 export async function oauthCallback(req, res) {
+  const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
   try {
     const { code, state, error } = req.query;
-    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+
+    let targetUserId = state;
+    let returnPath = '/settings?tab=integrations';
+    if (state) {
+      try {
+        const parsed = JSON.parse(state);
+        if (parsed.userId) {
+          targetUserId = parsed.userId;
+          if (parsed.from === 'inbox') {
+            returnPath = '/inbox';
+          }
+        }
+      } catch (e) {
+        // state is plain userId string
+      }
+    }
+
+    const sep = returnPath.includes('?') ? '&' : '?';
 
     if (error) {
-      return res.redirect(`${clientUrl}/settings?tab=integrations&error=${encodeURIComponent(error)}`);
+      let friendlyError = error;
+      if (error === 'access_denied') {
+        friendlyError = 'Google authorization was denied or cancelled.';
+      } else if (error === 'redirect_uri_mismatch') {
+        friendlyError = 'Redirect URI mismatch. Please ensure http://localhost:5000/api/gmail/oauth/callback is registered in your Google Cloud Console.';
+      }
+      return res.redirect(`${clientUrl}${returnPath}${sep}error=${encodeURIComponent(friendlyError)}`);
     }
 
-    if (!code || !state) {
-      return res.redirect(`${clientUrl}/settings?tab=integrations&error=missing_code_or_state`);
+    if (!code || !targetUserId) {
+      return res.redirect(`${clientUrl}${returnPath}${sep}error=missing_code_or_state`);
     }
 
-    // state contains userId
-    await exchangeCodeForTokens(code, state);
+    // Exchange authorization code for live tokens
+    await exchangeCodeForTokens(code, targetUserId);
 
     // Enqueue initial sync job
-    await addJob('sync-gmail', { userId: state });
+    await addJob('sync-gmail', { userId: targetUserId });
 
-    res.redirect(`${clientUrl}/settings?tab=integrations&success=gmail_connected`);
+    res.redirect(`${clientUrl}${returnPath}${sep}success=gmail_connected`);
   } catch (err) {
     console.error('OAuth Callback Error:', err.message);
-    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
     res.redirect(`${clientUrl}/settings?tab=integrations&error=${encodeURIComponent(err.message)}`);
   }
 }
@@ -89,10 +113,17 @@ export async function configureCredentials(req, res) {
 
     await configureGoogleCredentials({ clientId, clientSecret, redirectUri });
 
+    let authUrl = null;
+    try {
+      authUrl = generateAuthUrl(req.user._id, { from: req.query.from || 'settings' });
+    } catch (e) {
+      // Ignored if generation throws
+    }
+
     res.status(200).json({
       success: true,
       message: 'Google Cloud credentials saved successfully. You can now authorize your live Gmail account.',
-      data: { isConfigured: true },
+      data: { isConfigured: true, authUrl },
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

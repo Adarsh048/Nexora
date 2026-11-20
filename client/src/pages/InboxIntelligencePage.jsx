@@ -22,15 +22,21 @@ import {
 } from 'lucide-react';
 import { inboxApi, gmailApi, applicationApi } from '../services/api.js';
 import { format, formatDistanceToNow } from 'date-fns';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import { Copy } from 'lucide-react';
 
 export const InboxIntelligencePage = () => {
+  const [searchParams] = useSearchParams();
+  const oauthSuccess = searchParams.get('success') === 'gmail_connected';
+  const oauthError = searchParams.get('error');
+
   const [emails, setEmails] = useState([]);
   const [gmailStatus, setGmailStatus] = useState(null);
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState(null);
+  const [copiedRedirect, setCopiedRedirect] = useState(false);
 
   // Ingestion Modal with Smart Paste & Guided Form
   const [showIngestModal, setShowIngestModal] = useState(false);
@@ -106,9 +112,15 @@ export const InboxIntelligencePage = () => {
     }
   };
 
+  const handleCopyRedirectUri = () => {
+    navigator.clipboard.writeText('http://localhost:5000/api/gmail/oauth/callback');
+    setCopiedRedirect(true);
+    setTimeout(() => setCopiedRedirect(false), 2500);
+  };
+
   const handleConnectGmail = async () => {
     try {
-      const res = await gmailApi.getAuthUrl();
+      const res = await gmailApi.getAuthUrl('inbox');
       if (res.success && res.url) {
         window.location.href = res.url;
       }
@@ -119,14 +131,22 @@ export const InboxIntelligencePage = () => {
 
   const handleSaveGoogleConfig = async (e) => {
     e.preventDefault();
+    if (!googleConfig.clientId || !googleConfig.clientSecret) {
+      alert('Please enter both Google Client ID and Client Secret.');
+      return;
+    }
     setSavingConfig(true);
     try {
-      await gmailApi.configure(googleConfig);
+      const res = await gmailApi.configure(googleConfig, 'inbox');
       setShowConfigModal(false);
-      setSyncMessage('Google Cloud credentials saved! You can now authorize your account.');
-      const res = await gmailApi.getAuthUrl();
-      if (res.success && res.url) {
-        window.location.href = res.url;
+      setSyncMessage('Google Cloud credentials saved! Authorizing live account...');
+      if (res.data?.authUrl) {
+        window.location.href = res.data.authUrl;
+      } else {
+        const authRes = await gmailApi.getAuthUrl('inbox');
+        if (authRes.success && authRes.url) {
+          window.location.href = authRes.url;
+        }
       }
     } catch (err) {
       alert(err.message || 'Failed to save Google Cloud credentials.');
@@ -242,6 +262,30 @@ export const InboxIntelligencePage = () => {
 
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-150">
+      {oauthSuccess && (
+        <div className="p-4 rounded-3xl bg-emerald-50 border border-emerald-200 text-emerald-900 shadow-sm flex items-start space-x-3 animate-in fade-in duration-200">
+          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-xs font-bold">Google Gmail Connected Successfully!</p>
+            <p className="text-[11px] text-emerald-700 mt-0.5 leading-relaxed">
+              Nexora is now actively scanning your connected Gmail inbox for recruitment communications, interview bookings, and offers.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {oauthError && (
+        <div className="p-4 rounded-3xl bg-amber-50 border border-amber-200 text-amber-900 shadow-sm flex items-start space-x-3 animate-in fade-in duration-200">
+          <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-xs font-bold">Google Connection Notice</p>
+            <p className="text-[11px] text-amber-700 mt-0.5 leading-relaxed">
+              {decodeURIComponent(oauthError)}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -642,13 +686,34 @@ export const InboxIntelligencePage = () => {
                 />
               </div>
 
-              <div className="p-3 rounded-xl bg-violet-50 border border-violet-100 text-[11px] text-slate-600 space-y-1">
-                <div className="font-semibold text-slate-800">Setup Instructions:</div>
-                <div>1. Enable the <strong>Gmail API</strong> in Google Cloud Console.</div>
-                <div>2. Set Authorized Redirect URI to:</div>
-                <code className="block bg-white p-1 rounded border border-violet-200 text-[#7652E8] font-mono text-[10px]">
-                  http://localhost:5000/api/gmail/oauth/callback
-                </code>
+              <div className="p-3.5 rounded-2xl bg-violet-50 border border-violet-100 text-[11px] text-slate-600 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <div className="font-semibold text-slate-800">Setup Instructions:</div>
+                  <a
+                    href="https://console.cloud.google.com/apis/credentials"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#7652E8] font-bold text-[10px] inline-flex items-center gap-1 hover:underline"
+                  >
+                    <span>Google Cloud Console</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+                <div>1. Enable the <strong>Gmail API</strong> in your Google Cloud Project.</div>
+                <div>2. Add this exact Authorized Redirect URI:</div>
+                <div className="flex items-center space-x-1.5 pt-0.5">
+                  <code className="flex-1 bg-white p-1.5 rounded-lg border border-violet-200 text-[#7652E8] font-mono text-[10px] truncate select-all">
+                    http://localhost:5000/api/gmail/oauth/callback
+                  </code>
+                  <button
+                    type="button"
+                    onClick={handleCopyRedirectUri}
+                    className="px-2.5 py-1.5 rounded-lg bg-violet-100 hover:bg-violet-200 text-[#7652E8] text-[10px] font-bold transition-colors shrink-0 flex items-center space-x-1 cursor-pointer"
+                  >
+                    {copiedRedirect ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                    <span>{copiedRedirect ? 'Copied' : 'Copy'}</span>
+                  </button>
+                </div>
               </div>
 
               <div className="pt-2 flex items-center justify-end space-x-2 border-t border-violet-50">

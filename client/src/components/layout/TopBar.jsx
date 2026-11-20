@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Bell, Check, LogOut, Settings as SettingsIcon, Menu, ExternalLink } from 'lucide-react';
+import { Search, Bell, Check, LogOut, Settings as SettingsIcon, Menu, ExternalLink, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { notificationApi } from '../../services/api.js';
 import { formatDistanceToNow } from 'date-fns';
@@ -84,8 +84,16 @@ export const TopBar = ({
       {/* Mobile backdrop for notifications */}
       {showNotifications && (
         <div
-          className="lg:hidden fixed inset-0 z-40 bg-black/10 backdrop-blur-[1px]"
+          className="lg:hidden fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px]"
           onClick={() => setShowNotifications(false)}
+        />
+      )}
+
+      {/* Mobile backdrop for user profile menu */}
+      {showUserMenu && (
+        <div
+          className="lg:hidden fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px]"
+          onClick={() => setShowUserMenu(false)}
         />
       )}
 
@@ -141,17 +149,26 @@ export const TopBar = ({
             </button>
 
             {showNotifications && (
-              <div className="absolute right-0 mt-3 w-72 sm:w-84 bg-white rounded-3xl shadow-xl border border-[#ECE8FB] p-4 z-50 animate-in fade-in zoom-in-95 duration-150">
+              <div className="fixed inset-x-3.5 top-18 sm:top-auto sm:inset-x-auto sm:absolute sm:right-0 sm:mt-3 w-auto sm:w-88 max-h-[80vh] flex flex-col bg-white rounded-3xl shadow-2xl border border-[#ECE8FB] p-4 z-50 animate-in fade-in zoom-in-95 duration-150">
                 <div className="flex items-center justify-between pb-3 border-b border-[#F0EDFB]">
                   <span className="text-xs font-bold text-[#17172F]">Notifications ({unreadCount})</span>
-                  {unreadCount > 0 && (
+                  <div className="flex items-center space-x-2">
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={handleMarkAllRead}
+                        className="text-[11px] text-[#7652E8] font-bold hover:underline cursor-pointer"
+                      >
+                        Mark all read
+                      </button>
+                    )}
                     <button
-                      onClick={handleMarkAllRead}
-                      className="text-[11px] text-[#7652E8] font-bold hover:underline cursor-pointer"
+                      onClick={() => setShowNotifications(false)}
+                      className="sm:hidden p-1 text-[#8E8BA8] hover:text-[#17172F] rounded-lg"
+                      aria-label="Close notifications"
                     >
-                      Mark all read
+                      <X className="w-4 h-4" />
                     </button>
-                  )}
+                  </div>
                 </div>
 
                 <div className="max-h-72 overflow-y-auto divide-y divide-[#F8F7FD] py-1">

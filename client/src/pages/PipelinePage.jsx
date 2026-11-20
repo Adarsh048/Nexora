@@ -27,6 +27,7 @@ export const PipelinePage = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [defaultStatusForModal, setDefaultStatusForModal] = useState('Applied');
   const [draggingAppId, setDraggingAppId] = useState(null);
+  const [mobileActiveStage, setMobileActiveStage] = useState('All');
 
   const fetchKanban = async () => {
     try {
@@ -137,18 +138,52 @@ export const PipelinePage = () => {
         </button>
       </div>
 
-      {/* Kanban Board Container (Horizontal Swipeable on Mobile) */}
-      <div className="flex items-start space-x-3.5 sm:space-x-5 overflow-x-auto pb-6 pt-2 snap-x snap-mandatory">
+      {/* Mobile Stage Quick Switcher Pills (< sm) */}
+      <div className="sm:hidden flex items-center space-x-1.5 overflow-x-auto pb-1">
+        <button
+          onClick={() => setMobileActiveStage('All')}
+          className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer ${
+            mobileActiveStage === 'All'
+              ? 'bg-[#7652E8] text-white shadow-xs'
+              : 'bg-white text-slate-600 border border-violet-100'
+          }`}
+        >
+          All Stages
+        </button>
+        {columnConfig.map((col) => {
+          const count = (columns[col.id] || []).length;
+          return (
+            <button
+              key={col.id}
+              onClick={() => setMobileActiveStage(col.id)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all flex items-center space-x-1 cursor-pointer ${
+                mobileActiveStage === col.id
+                  ? 'bg-[#7652E8] text-white shadow-xs'
+                  : 'bg-white text-slate-600 border border-violet-100'
+              }`}
+            >
+              <span>{col.title}</span>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${mobileActiveStage === col.id ? 'bg-white/25 text-white' : 'bg-violet-100 text-[#7652E8]'}`}>
+                {count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Kanban Board Container (Horizontal Swipeable on Mobile, Responsive Grid/Flex on Desktop) */}
+      <div className="flex items-start space-x-3.5 sm:space-x-5 overflow-x-auto pb-6 pt-1 snap-x snap-mandatory">
         {columnConfig.map((col) => {
           const Icon = col.icon;
           const items = columns[col.id] || [];
+          const isHiddenOnMobile = mobileActiveStage !== 'All' && mobileActiveStage !== col.id;
 
           return (
             <div
               key={col.id}
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, col.id)}
-              className={`w-[85vw] sm:w-72 shrink-0 snap-center bg-[#F7F6FD] rounded-3xl p-3.5 border-t-4 ${col.borderTop} border border-violet-100/70 shadow-xs flex flex-col min-h-[520px] sm:min-h-[580px] transition-colors`}
+              className={`${isHiddenOnMobile ? 'hidden sm:flex' : 'flex'} w-full sm:w-72 shrink-0 snap-center bg-[#F7F6FD] rounded-3xl p-3.5 border-t-4 ${col.borderTop} border border-violet-100/70 shadow-xs flex-col min-h-[500px] sm:min-h-[580px] transition-colors`}
             >
               {/* Column Header */}
               <div className="flex items-center justify-between px-2 py-2 mb-3">

@@ -204,13 +204,13 @@ export const timelineApi = {
 // Gmail API
 export const gmailApi = {
   getStatus: () => request('/gmail/status'),
-  getAuthUrl: () => request('/gmail/auth-url'),
+  getAuthUrl: (from = 'settings') => request(`/gmail/auth-url?from=${encodeURIComponent(from)}`),
   syncNow: () =>
     request('/gmail/sync', {
       method: 'POST',
     }),
-  configure: (credentials) =>
-    request('/gmail/configure', {
+  configure: (credentials, from = 'settings') =>
+    request(`/gmail/configure?from=${encodeURIComponent(from)}`, {
       method: 'POST',
       body: JSON.stringify(credentials),
     }),

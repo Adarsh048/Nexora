@@ -60,22 +60,28 @@ export async function configureGoogleCredentials({ clientId, clientSecret, redir
   return true;
 }
 
-export function generateAuthUrl(userId) {
+export function generateAuthUrl(userId, options = {}) {
   const oauth2Client = getOAuth2Client();
   if (!oauth2Client) {
     throw new Error('Google OAuth credentials not configured in environment.');
   }
 
   const scopes = [
+    'openid',
     'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/userinfo.profile',
     'https://www.googleapis.com/auth/gmail.readonly',
   ];
+
+  const statePayload = typeof options === 'object'
+    ? JSON.stringify({ userId: userId.toString(), from: options.from || 'settings' })
+    : userId.toString();
 
   return oauth2Client.generateAuthUrl({
     access_type: 'offline',
     prompt: 'consent',
     scope: scopes,
-    state: userId.toString(),
+    state: statePayload,
   });
 }
 
@@ -88,9 +94,21 @@ export async function exchangeCodeForTokens(code, userId) {
   const { tokens } = await oauth2Client.getToken(code);
   oauth2Client.setCredentials(tokens);
 
-  const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
-  const userInfo = await oauth2.userinfo.get();
-  const emailAddress = userInfo.data.email;
+  let emailAddress = '';
+  try {
+    const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
+    const userInfo = await oauth2.userinfo.get();
+    emailAddress = userInfo.data.email;
+  } catch (userinfoErr) {
+    console.log('[Gmail] UserInfo API fallback to gmail.users.getProfile:', userinfoErr.message);
+    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+    const profile = await gmail.users.getProfile({ userId: 'me' });
+    emailAddress = profile.data.emailAddress;
+  }
+
+  if (!emailAddress) {
+    throw new Error('Could not retrieve email address from authorized Google account.');
+  }
 
   const encAccess = encrypt(tokens.access_token);
   const encRefresh = tokens.refresh_token ? encrypt(tokens.refresh_token) : null;

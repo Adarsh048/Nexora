@@ -82,7 +82,7 @@ export const AppLayout = () => {
       {/* Main Content Workspace */}
       <div
         ref={workspaceContainerRef}
-        className="flex-1 flex flex-col min-w-0 w-full overflow-y-auto pb-20 lg:pb-0 scroll-smooth"
+        className="flex-1 flex flex-col min-w-0 w-full overflow-y-auto pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0 scroll-smooth"
       >
         <TopBar
           onOpenSearch={() => setIsSearchOpen(true)}
@@ -102,7 +102,7 @@ export const AppLayout = () => {
       </div>
 
       {/* Sleek Mobile Bottom Navigation Bar with Prominent Center Add Button (< lg screens) */}
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 bg-white/90 backdrop-blur-xl border-t border-[#ECE8FB]/80 py-1.5 px-2 z-30 flex items-center justify-around shadow-[0_-8px_30px_rgba(118,82,232,0.08)]">
+      <nav className="lg:hidden fixed bottom-0 inset-x-0 bg-white/90 backdrop-blur-xl border-t border-[#ECE8FB]/80 pt-1.5 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))] px-2 z-30 flex items-center justify-around shadow-[0_-8px_30px_rgba(118,82,232,0.08)]">
         {/* 1. Home */}
         <NavLink
           to="/"
